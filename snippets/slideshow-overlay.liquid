@@ -1,0 +1,25 @@
+{%- comment -%}
+  @param blocks {array}
+    Array of blocks to iterate block stylings through
+{%- endcomment -%}
+
+<style>
+  {% for block in blocks %}
+    .slideshow-slide-overlay--{{ block.id }} {
+      background-color: {{ block.settings.overlay_color }};
+      opacity: {{ block.settings.overlay_opacity | divided_by: '100.00' }};
+    }
+
+    .slideshow-height-fullscreen + .slideshow-slide-content--{{ block.id }} .slideshow-slide-heading,
+    .slideshow-height-fullscreen + .slideshow-slide-content--{{ block.id }} .slideshow-slide-text {
+      color: {{ block.settings.color }};
+    }
+
+    @media (min-width: 720px) {
+      .slideshow-slide-content--{{ block.id }} .slideshow-slide-heading,
+      .slideshow-slide-content--{{ block.id }} .slideshow-slide-text {
+        color: {{ block.settings.color }};
+      }
+    }
+  {% endfor %}
+</style>

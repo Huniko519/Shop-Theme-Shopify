@@ -1,0 +1,121 @@
+{% assign collection = collections[section.settings.collection] %}
+
+{% assign product_limit = 4 %}
+{% assign products = collection.products %}
+{% assign onboarding = false %}
+{% assign banner_image = false %}
+
+{% if section.settings.banner_image != blank %}
+  {% assign banner_image = section.settings.banner_image | img_url: '500x750' %}
+{% endif %}
+
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-featured-collection">
+</script>
+
+<section class="product-row--container featured-collection--container">
+  {% if section.settings.title != blank %}
+    <h1 class="home-section--title">
+      {{ section.settings.title | escape }}
+    </h1>
+  {% endif %}
+
+  <div class="home-section--content product-row" data-product-row>
+    {% for product in products limit: product_limit %}
+{%- include 'bold-product' with product, hide_action: 'skip' -%}
+      {%
+        include 'product-grid-item',
+        product: product
+      %}
+    {% else %}
+      {% for i in (1..product_limit) %}
+        {% capture current %}{% cycle 1, 2, 3, 4 %}{% endcapture %}
+
+        {%- capture placeholder_image -%}
+          {{ 'product-' | append: current | placeholder_svg_tag: 'placeholder--image' }}
+        {%- endcapture -%}
+
+        {%
+          include 'product-grid-item',
+          product: false
+        %}
+
+      {% endfor %}
+    {% endfor %}
+
+    <div class="productgrid--item featured-collection--banner">
+      <a class="featured-collection--banner-outer" href="{% if collection.url != blank %}{{ collection.url }}{% else %}#{% endif %}">
+        <div class="featured-collection--banner-inner">
+          <span class="featured-collection--banner-subtitle">
+            {{ 'onboarding.featured_collection.subtitle' | t }}
+          </span>
+
+          <h2 class="featured-collection--banner-title">
+            {% unless onboarding %}
+              {{ collection.title | escape }}
+            {% else %}
+              {{ 'onboarding.featured_collection.title' | t }}
+            {% endunless %}
+          </h2>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  #shopify-section-{{section.id}} .featured-collection--banner {
+    color: {{ section.settings.banner_color }};
+
+    {% if banner_image %}
+      background-image: url('{{ banner_image | strip_newlines }}');
+    {% else %}
+      background-color: {{ settings.color_links }};
+    {% endif %}
+  }
+</style>
+{% schema %}
+{
+  "name": "Featured collection",
+  "class": "featured-collection--section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Featured collection"
+    },
+    {
+      "id": "collection",
+      "type": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "color",
+      "id": "banner_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "id": "banner_image",
+      "type": "image_picker",
+      "label": "Image",
+      "info": "500 x 750px .jpg recommended"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured collection",
+      "category": "Collection"
+    }
+  ]
+}
+
+{% endschema %}

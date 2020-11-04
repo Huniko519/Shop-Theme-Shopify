@@ -1,0 +1,51 @@
+{% assign product_limit = 5 %}
+{% assign item_count = product_limit %}
+{% assign products = related_collection.products %}
+
+{% if products.size < product_limit %}
+  {% assign item_count = products.size %}
+{% endif %}
+
+{% comment %}
+  Within a collection of 5 or less, popping the current product off
+  will result in one less product showing than {{ products.size }}
+{% endcomment %}
+{% assign product_count = 0 %}
+{% for product in products limit: product_limit %}
+{%- include 'bold-product' with product, hide_action: 'skip' -%}
+  {% if product.id == current_product %}
+    {% assign is_current_product = true %}
+  {% else %}
+    {% unless is_current_product == false and forloop.last %}
+      {% assign product_count = product_count | plus: 1 %}
+    {% endunless %}
+  {% endif %}
+{% endfor %}
+
+<section class="product-section--container product-row--container related-products--container" data-related-products>
+  <h2 class="product-section--title related-products--title">
+    {{ 'product.general.related_products_title' | t }}
+  </h2>
+
+  <div
+    class="product-section--content product-row"
+    data-product-row
+  >
+    {% assign product_limit = product_limit | plus: 1 %}
+    {% assign is_current_product = false %}
+
+    {% for product in products limit: product_limit %}
+{%- include 'bold-product' with product, hide_action: 'skip' -%}
+      {% if product.id == current_product %}
+        {% assign is_current_product = true %}
+      {% else %}
+        {% unless is_current_product == false and forloop.last %}
+          {%
+            include 'product-grid-item',
+            product: product
+          %}
+        {% endunless %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>

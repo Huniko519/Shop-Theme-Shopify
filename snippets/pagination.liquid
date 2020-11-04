@@ -1,0 +1,50 @@
+{% if paginate.previous or paginate.next %}
+  <div class="pagination--container">
+    <ul class="pagination--inner">
+      {% if paginate.previous %}
+        <li class="pagination--previous">
+          <a class="pagination--item" href="{{ paginate.previous.url }}{% if grid_list %}&grid_list{% endif %}">
+            <span class="pagination--chevron-left" aria-hidden="true">
+              {% include 'icon-chevron-down-small' %}
+            </span>
+            {{ 'general.pagination.prev' | t }}
+          </a>
+        </li>
+      {% endif %}
+      {% for part in paginate.parts %}
+        {% if part.is_link %}
+          <li>
+            <a class="pagination--item" href="{{ part.url }}{% if grid_list %}&grid_list{% endif %}">
+              {{ part.title }}
+            </a>
+          </li>
+        {% else %}
+          {% if part.title == '&hellip;' %}
+            <li class="pagination--ellipsis">
+              <span class="pagination--item">
+                {{ part.title }}
+              </span>
+            </li>
+          {% else %}
+            <li class="pagination--active">
+              <span class="pagination--item">
+                {{ part.title }}
+              </span>
+            </li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if paginate.next %}
+        <li class="pagination--next">
+          <a class="pagination--item" href="{{ paginate.next.url }}&grid_list">
+            {{ 'general.pagination.next' | t }}
+
+            <span class="pagination--chevron-right" aria-hidden="true">
+              {% include 'icon-chevron-down-small' %}
+            </span>
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+{% endif %}

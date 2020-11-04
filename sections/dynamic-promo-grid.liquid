@@ -1,0 +1,286 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-promo-grid">
+</script>
+
+<section class="promo-grid--container">
+  {% if section.settings.title != blank %}
+    <h1 class="home-section--title">
+      {{ section.settings.title | escape }}
+    </h1>
+  {% endif %}
+
+  {%- capture classes -%}
+    home-section--content
+    promo-grid--height-{{ section.settings.section_height }}
+  {%- endcapture -%}
+
+  <div class="{{ classes | strip_newlines }}">
+    {% if section.blocks.size > 0 %}
+      <div
+        class="promo-grid--inner">
+        {% assign half_width_iteration = 0 %}
+
+        {% for block in section.blocks %}
+          {% assign half_width_class = '' %}
+
+          {% comment %}
+            For IE support, add an additional class to half width blocks when
+            they're adjacent to other half blocks
+          {% endcomment %}
+          {%- if block.settings.promo_width == 'half-width' -%}
+            {% assign half_width_iteration = half_width_iteration | plus: 1 %}
+
+            {% comment %}
+              If is second iteration, then it will always be right aligned
+            {% endcomment %}
+            {%- if half_width_iteration == 2 -%}
+              {% assign half_width_iteration = 0 %}
+              {% assign half_width_class = 'promo-block--right' %}
+            {%- endif -%}
+          {%- else -%}
+
+            {% comment %}
+              Reset iteration counter when a full width block appear.
+              If a half width block follows, it will always be left aligned
+            {% endcomment %}
+            {% assign half_width_iteration = 0 %}
+          {%- endif -%}
+
+          {%- capture additional_classes -%}
+            promo-grid--{{ block.settings.promo_width }}
+            {{ half_width_class }}
+          {%- endcapture -%}
+
+          {%
+            include 'promo-block',
+            block: block,
+            text_alignment: section.settings.text_alignment,
+            maintain_aspect_ratio: section.settings.maintain_aspect_ratio,
+            compress_blocks: section.settings.compress_blocks,
+            additional_classes: additional_classes
+          %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  {%
+    include 'promo-block-background',
+    blocks: section.blocks
+  %}
+</section>
+
+{% schema %}
+{
+  "name": "Grid",
+  "class": "promo-grid--section",
+  "max_blocks": 20,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Grid"
+    },
+    {
+      "id": "section_height",
+      "type": "select",
+      "label": "Section height",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "small"
+    },
+    {
+      "id": "text_alignment",
+      "type": "select",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "top-left",
+          "label": "Top left"
+        },
+        {
+          "value": "top-center",
+          "label": "Top center"
+        },
+        {
+          "value": "top-right",
+          "label": "Top right"
+        },
+        {
+          "value": "center-left",
+          "label": "Center left"
+        },
+        {
+          "value": "center-center",
+          "label": "Center center"
+        },
+        {
+          "value": "center-right",
+          "label": "Center right"
+        },
+        {
+          "value": "bottom-left",
+          "label": "Bottom left"
+        },
+        {
+          "value": "bottom-center",
+          "label": "Bottom center"
+        },
+        {
+          "value": "bottom-right",
+          "label": "Bottom right"
+        }
+      ],
+      "default": "top-left"
+    },
+    {
+      "id": "maintain_aspect_ratio",
+      "type": "checkbox",
+      "label": "Maintain aspect ratio"
+    },
+    {
+      "type": "header",
+      "content": "Mobile"
+    },
+    {
+      "id": "compress_blocks",
+      "type": "checkbox",
+      "label": "Compress blocks"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "promotion",
+      "name": "Promotional item",
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Grid"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text",
+          "default": "Use this section to welcome customers to your store, say a bit about your brand, or share news.",
+          "info": "Limited to 120 characters."
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Text color",
+          "default": "#4d4d4d"
+        },
+        {
+          "type": "url",
+          "id": "block_link",
+          "label": "Link"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button text"
+        },
+        {
+          "id": "button_style",
+          "type": "select",
+          "label": "Button style",
+          "options": [
+            {
+              "value": "primary",
+              "label": "Primary"
+            },
+            {
+              "value": "secondary",
+              "label": "Secondary"
+            }
+          ],
+          "default": "primary"
+        },
+        {
+          "type": "select",
+          "id": "promo_width",
+          "label": "Width",
+          "options": [
+            {
+              "value": "half-width",
+              "label": "Half width"
+            },
+            {
+              "value": "full-width",
+              "label": "Full width"
+            }
+          ],
+          "default": "half-width"
+        },
+        {
+          "type": "header",
+          "content": "Overlay"
+        },
+        {
+          "id": "show_overlay",
+          "type": "checkbox",
+          "label": "Show overlay"
+        },
+        {
+          "id": "background",
+          "type": "color",
+          "label": "Color"
+        },
+        {
+          "id": "opacity",
+          "type": "range",
+          "label": "Opacity",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Grid",
+      "category": "Image",
+      "blocks": [
+        {
+          "type": "promotion"
+        },
+        {
+          "type": "promotion"
+        },
+        {
+          "type": "promotion"
+        },
+        {
+          "type": "promotion"
+        }
+      ]
+    }
+  ]
+}
+
+{% endschema %}

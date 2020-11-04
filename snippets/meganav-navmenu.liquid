@@ -1,0 +1,75 @@
+{%- capture navmenu_classes -%}
+  navmenu
+  navmenu-depth-{{ depth }}
+  navmenu-meganav-items
+{%- endcapture -%}
+<ul class="{{ navmenu_classes | strip_newlines }}">
+  {% for block in blocks %}
+    {% assign meganav_trigger = block.settings.meganav_trigger | handle | strip %}
+    {% if link.handle == meganav_trigger %}
+      {% if block.settings.image_1 or block.settings.image_2 %}
+        {% if block.settings.position_1 == block.settings.position_2 %}
+          <div
+            class="
+              navmenu-meganav--image-container
+              navmenu-meganav--image-{{ block.settings.position_1 }}
+            "
+          >
+        {% endif %}
+          {%
+            include 'meganav-image-block'
+            id: 1,
+            settings: block.settings
+          %}
+
+          {%
+            include 'meganav-image-block'
+            id: 2,
+            settings: block.settings
+          %}
+        {% if block.settings.position_1 == block.settings.position_2 %}
+          </div>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% for link in link.links %}
+    {% assign d = depth | plus: 1 %}
+    {% assign nav_item_count = 'navmenu-item-count-' %}
+    {% if link.links.size > 4 %}
+      {% assign nav_item_count = nav_item_count | append: '5-up' %}
+    {% else %}
+      {% assign nav_item_count = nav_item_count | append: link.links.size %}
+    {% endif %}
+    {%- capture navmenu_item_classes -%}
+      navmenu-item
+      navmenu-item-parent
+      {{ nav_item_count }}
+      navmenu-id-{{ link.title | handle }}
+      navmenu-meganav-item
+    {%- endcapture -%}
+
+    <li
+      class="{{ navmenu_item_classes | strip_newlines }}"
+      {% if meganav_has_triggers %}data-navmenu-trigger{% endif %}
+      {{ block.shopify_attributes }}>
+      <span class="navmenu-item-text navmenu-link-parent">
+        {{ link.title }}
+        {% if submenu_arrows %}
+          <span class="navmenu-icon navmenu-icon-depth-{{ depth }}">
+            {% include 'icon-chevron-down-small' %}
+          </span>
+        {% endif %}
+      </span>
+      {%
+        include 'navmenu',
+        menu: link,
+        depth: d,
+        max_depth: 4,
+        is_submenu: true,
+        has_triggers: true,
+        submenu_arrows: true,
+        aria_expanded: true
+      %}
+  {% endfor %}
+</ul>

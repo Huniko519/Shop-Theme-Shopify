@@ -1,0 +1,43 @@
+{% assign onboard = false %}
+{% assign image = false %}
+{% assign image_alt = false %}
+{% if collection == blank or collection.empty? %}
+  {% assign onboard = true %}
+{% endif %}
+{% assign collection_title = collection.title %}
+{% assign collection_url = collection.url %}
+{% if onboard %}
+  {% assign collection_title = 'onboarding.collection.title' | t  %}
+  {% assign collection_url = '#' %}
+{% endif %}
+{% if collection_image and collection_image_alt %}
+  {% assign image = collection_image %}
+  {% assign image_alt = collection_image_alt %}
+{% elsif collection.image %}
+  {% assign image = collection %}
+  {% assign image_alt = collection.image.alt | escape %}
+{% else %}
+  {% assign image = collection.products.first.featured_image %}
+  {% assign image_alt = collection_title | escape %}
+{% endif %}
+<article class="collection--item" {% if block %}{{ block.shopify_attributes }}{% endif %}>
+  <figure class="collection--item-image">
+    <a href="{{ collection_url }}">
+      {% if image and image_alt %}
+        <img
+          src="{{ image | img_url: '600x' }}"
+          alt="{{ image_alt }}">
+        {% else %}
+          {%- capture index -%}
+            {%- cycle '1', '2', '3', '4', '5', '6' -%}
+          {%- endcapture -%}
+          {{ 'collection-' | append: index | placeholder_svg_tag: 'placeholder--image' }}
+      {% endif %}
+    </a>
+  </figure>
+  <h2 class="collection--item-info">
+    <a class="collection--item-title" href="{{ collection_url }}">
+      {{ collection_title }}
+    </a>
+  </h2>
+</article>

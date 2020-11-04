@@ -1,0 +1,133 @@
+{% assign enable_social_sharing = settings.product_social_sharing %}
+{% assign selected_variant = bold_selected_or_first_available_variant %}
+{%- include 'bold-variant' with selected_variant, output: 'none' -%}
+{% assign selected_image = selected_variant.image | default: product.featured_image %}
+{% assign compare_at_price = selected_variant.compare_at_price %}
+{% assign price = bold_variant_price %}
+{% assign product_available = product.available %}
+
+{% assign on_sale = false %}
+{% if compare_at_price > price %}
+  {% assign on_sale = true %}
+{% endif %}
+
+{%
+  include 'consistent-savings',
+  variants: product.variants,
+  on_sale: on_sale
+%}
+
+{%- capture share_buttons -%}
+  {% assign social_image = product | img_url: '1024x' %}
+  {% assign social_url = shop.url | append: product.url %}
+  {%-
+    include 'share-buttons',
+    snippet_title: 'general.share_buttons.title',
+    social_image: social_image,
+    social_title: product.title,
+    social_url: social_url
+  -%}
+{%- endcapture  -%}
+
+<article class="product--outer">
+  {% comment %}
+    Product slideshow, never moves
+  {% endcomment %}
+  <div class="product-gallery" data-product-gallery>
+    {%
+      include 'product-gallery',
+      selected_image: selected_image
+    %}
+  </div>
+
+  <div class="product-main">
+    <div class="product-details" data-product-details>
+      {% if is_product_modal %}
+        <h2 class="product-title">
+          <a href="{{ product.url | within: collection }}">{{ product.title }}</a>
+        </h2>
+      {% else %}
+        <h1 class="product-title">
+          {{ product.title }}
+        </h1>
+      {% endif %}
+
+      {% if settings.product_show_vendor and product.vendor != blank %}
+        <div class="product-vendor">
+          {{ 'product.general.by_vendor' | t: vendor: product.vendor }}
+        </div>
+      {% endif %}
+
+      {% if settings.product_ratings_reviews %}
+        <div class="product-ratings">
+          <span class="shopify-product-reviews-badge" data-id="{{ product.id }}">
+            <span class="spr-badge">
+              <span class="spr-starrating spr-badge-starrating">
+                <i class="spr-icon spr-icon-star-empty"></i>
+                <i class="spr-icon spr-icon-star-empty"></i>
+                <i class="spr-icon spr-icon-star-empty"></i>
+                <i class="spr-icon spr-icon-star-empty"></i>
+                <i class="spr-icon spr-icon-star-empty"></i>
+              </span>
+            </span>
+          </span>
+        </div>
+      {% endif %}
+
+      <div class="product-pricing">
+        {%
+          include 'product-badge',
+          class_root: 'product',
+          product_available: product_available,
+          on_sale: on_sale,
+          price: price,
+          compare_at_price: compare_at_price,
+          show_saved: true
+        %}
+
+        {%
+          include 'product-price',
+          class_root: 'product',
+          price: price,
+          price_varies: false,
+          compare_at_price: compare_at_price,
+          compare_at_price_varies: false,
+          on_sale: on_sale,
+          emphasize_price: false,
+          show_original: true
+        %}
+      </div>
+    </div>
+    <div class="product-form--regular" data-product-form-regular>
+      <div data-product-form-area>
+        {% if is_product_modal %}
+          <div data-product-quickshop-message class="product-message--container"></div>
+        {% endif %}
+
+        {%
+          include 'product-form',
+          product: product,
+          selected_variant: selected_variant
+        %}
+
+        {% if enable_social_sharing and is_product_modal == false %}
+          {{ share_buttons | strip_newlines }}
+        {% endif %}
+      </div>
+    </div>
+    {% if product.description != blank %}
+      <div class="product-description rte" data-product-description>
+        {{ product.description }}
+      </div>
+    
+    <div id="shopify-product-reviews" data-id="{{product.id}}">{{ product.metafields.spr.reviews }}</div>	
+    {% endif %}
+
+    {% if enable_social_sharing and is_product_modal %}
+      {{ share_buttons | strip_newlines }}
+    {% endif %}
+  </div>
+  {% if layout == 'layout--three-col' %}
+    <div class="product-form--alt" data-product-form-alt></div>
+  {% endif %}
+</article>

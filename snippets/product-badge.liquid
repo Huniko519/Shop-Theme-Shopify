@@ -1,0 +1,22 @@
+{%- if product_available != true -%}
+  <span class="{{ class_root }}--badge badge--soldout">
+    {{ 'product.item.badges.sold_out' | t }}
+  </span>
+{%- elsif on_sale and settings.product_sales_badge -%}
+  {% assign sales_saved = compare_at_price | minus: price %}
+  {%- capture saved_price -%}
+    <span class="money" data-price-money-saved>{{ sales_saved | money }}</span>
+  {%- endcapture -%}
+  {%- capture percent_saved -%}
+    <span data-price-percent-saved>{{ sales_saved | times: 100.0 | divided_by: compare_at_price | round }}</span>
+  {%- endcapture -%}
+  <span class="{{ class_root }}--badge badge--sale" data-badge-sales>
+    {% if settings.product_sales_badge_style == 'percentile' and show_saved %}
+      {{ 'product.item.badges.sale_percentile_html' | t: saved: percent_saved | strip_newlines }}
+    {% elsif settings.product_sales_badge_style == 'money' and show_saved %}
+      {{ 'product.item.badges.sale_money_html' | t: saved: saved_price | strip_newlines }}
+    {% else %}
+      {{ 'product.item.badges.sale' | t }}
+    {% endif %}
+  </span>
+{%- endif -%}

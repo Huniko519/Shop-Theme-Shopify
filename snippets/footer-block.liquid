@@ -1,0 +1,52 @@
+{%- capture block_class -%}
+  site-footer-block-item
+  site-footer-block-{{ block.type | replace: '_', '-' }}
+  {% if block.type == 'menu' %}has-accordion{% endif %}
+{%- endcapture -%}
+<div class="{{ block_class | strip_newlines }}" {{ block.shopify_attributes }}>
+  {% if block.type == 'menu' %}
+      <h2 class="site-footer-block-title" data-accordion-trigger>
+        {{ linklists[block.settings.menu].title | escape }}
+        <span class="site-footer-block-icon accordion--icon">
+          {% include 'icon-chevron-down' %}
+        </span>
+      </h2>
+      <div class="site-footer-block-content accordion--content" data-accordion-content>
+        {%
+          include 'navmenu',
+          menu: block.settings.menu,
+          depth: 1,
+          max_depth: 1,
+          aria_expanded: false
+        %}
+      </div>
+  {% elsif block.type == 'rich_text' or block.type == 'newsletter' %}
+    {% if block.settings.title != blank %}
+      <h2 class="site-footer-block-title">
+        {{ block.settings.title | escape }}
+      </h2>
+    {% endif %}
+
+    {% if block.settings.text != blank %}
+      <div class="site-footer-block-content rte">
+        {{ block.settings.text }}
+      </div>
+    {% endif %}
+    {% if block.type == 'newsletter' %}
+      {% include 'newsletter' %}
+    {% endif %}
+  {% elsif block.type == 'social_accounts' %}
+    <h2 class="site-footer-block-title">
+      {{ 'footer.general.follow_us' | t }}
+    </h2>
+    <div class="site-footer-block-content">
+      {% include 'social-list' %}
+    </div>
+  {%elsif block.type =='image'%}
+  <div class="site-footer-block-content">
+    <a href="{{block.settings.link}}">
+      <img data-src="{{ block.settings.image | img_url: '800x' }}" class="fimage lazyload"/>
+    </a>
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,38 @@
+{% assign using_linklist = false %}
+{% assign pagination = 12 %}
+{% assign linklist = 'all-collections' %}
+
+{% if linklists[linklist] and linklists[linklist].links.size > 0 %}
+  {% assign using_linklist = true %}
+  {% assign pagination = 48 %}
+{% endif %}
+
+{% include 'breadcrumbs' %}
+
+{% paginate collections by pagination %}
+  <div class="listcollections--container">
+    <div class="listcollections--inner">
+      {% if using_linklist %}
+        {% for link in linklists[linklist].links %}
+          {% assign link_handle = link.handle %}
+          {% assign collection = collections[link_handle] %}
+          {% include 'collection-list-item' %}
+        {% endfor %}
+      {% else %}
+        {% for collection in collections %}
+          {% include 'collection-list-item' %}
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+  {% include 'pagination' %}
+{% endpaginate %}
+{% schema %}
+{
+  "name": "Collections",
+  "class": "listcollections--section",
+  "settings": []
+}
+
+{% endschema %}

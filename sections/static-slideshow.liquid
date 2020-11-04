@@ -1,0 +1,333 @@
+<script
+  type="application/json"
+  data-section-type="static-slideshow"
+  data-section-id="{{ section.id }}"
+  data-section-data
+>
+  {
+    "enable_autoplay": {{ section.settings.enable_autoplay | json }},
+    "autoplay_duration": {{ section.settings.autoplay_duration | json }}
+  }
+</script>
+
+{% if section.settings.show_slideshow %}
+  <section
+    class="
+      slideshow
+      slideshow-dots-{{ section.settings.slideshow_height }}
+    "
+  >
+    {% for block in section.blocks %}
+      {% capture slide_image %}
+        {% if block.settings.background_image != blank %}
+          {{ block.settings.background_image | img_url: '1800x1000' }}
+        {% else %}
+          {%-
+            include 'placeholder_svg_uri'
+            placeholder: 'lifestyle-2'
+            color_string: 'silver'
+          -%}
+        {% endif %}
+      {% endcapture %}
+
+      {% capture slide_image_alt %}
+        {% if block.settings.background_image != blank %}
+          {{ block.settings.background_image.alt }}
+        {% endif %}
+      {% endcapture %}
+
+      <div
+        class="
+          slideshow-slide
+          slideshow-height-{{ section.settings.slideshow_height }}
+        "
+        {{ block.shopify_attributes }}
+      >
+        {% if block.settings.link != blank %}
+          <a
+            class="
+              slideshow-link
+              slideshow-height-{{ section.settings.slideshow_height }}
+            "
+            href="{{ block.settings.link }}"
+          >
+        {% endif %}
+
+        <div
+          class="
+            slideshow-background
+            slideshow-background--{{ block.id }}
+            slideshow-height-{{ section.settings.slideshow_height }}
+            {% if block.settings.background_image == blank %}
+              placeholder--image
+            {% endif %}
+          "
+          style="background-image: url('{{ slide_image | strip }}')"
+          data-themecolor="{{ settings.color_text }}"
+          data-slidecolor="{{ block.settings.color }}"
+        >
+          <img
+            class="lazyload
+              slideshow-image
+              {% if section.settings.slideshow_height != 'original' %}
+                show-for-sr
+              {% endif %}
+            "
+            data-src="{{ slide_image | strip }}"
+            alt="{{ slide_image_alt }}"
+          >
+            {% if block.settings.show_overlay == true %}
+              <div
+                class="
+                  slideshow-slide-overlay
+                  slideshow-slide-overlay--{{ block.id }}
+                "
+              ></div>
+            {% endif %}
+        </div>
+
+        <div
+          class="
+            slideshow-slide-content
+            slideshow-slide-content--{{ block.id }}
+          "
+        >
+          {% if block.settings.heading != blank %}
+            <h2 class="slideshow-slide-heading">{{ block.settings.heading | escape }}</h2>
+          {% endif %}
+
+          {% if block.settings.text != blank %}
+            <h3 class="slideshow-slide-text">{{ block.settings.text | escape }}</h3>
+          {% endif %}
+
+          {% if block.settings.button_one_label != blank %}
+            <a
+              {% if block.settings.button_one_link != blank%}
+                href="{{ block.settings.button_one_link }}"
+              {% endif %}
+              class="
+                slideshow-button
+                button-{{ block.settings.button_one_style }}
+              "
+            >
+              {{ block.settings.button_one_label | escape }}
+            </a>
+          {% endif %}
+
+          {% if block.settings.button_two_label != blank %}
+            <a
+              {% if block.settings.button_two_link != blank%}
+                href="{{ block.settings.button_two_link }}"
+              {% endif %}
+              class="
+                slideshow-button
+                button-{{ block.settings.button_two_style }}
+              "
+            >
+              {{ block.settings.button_two_label | escape }}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if block.settings.link != blank %}
+        </a>
+      {% endif %}
+    {% endfor %}
+
+    {%
+      include 'slideshow-overlay',
+      blocks: section.blocks
+    %}
+  </section>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Slideshow",
+  "class": "slideshow--section",
+  "settings": [
+    {
+      "id": "show_slideshow",
+      "type": "checkbox",
+      "label": "Enable slideshow",
+      "default": true
+    },
+    {
+      "id": "enable_autoplay",
+      "type": "checkbox",
+      "label": "Autoplay slideshow",
+      "default": true
+    },
+    {
+      "id": "autoplay_duration",
+      "type": "range",
+      "label": "Autoplay slide duration",
+      "min": 5,
+      "max": 12,
+      "step": 1,
+      "unit": "sec",
+      "default": 8
+    },
+    {
+      "id": "slideshow_height",
+      "type": "select",
+      "label": "Slideshow height",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "fullscreen",
+          "label": "Fullscreen"
+        },
+        {
+          "value": "original",
+          "label": "Original aspect ratio"
+        }
+      ],
+      "default": "medium"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "id": "background_image",
+          "type": "image_picker",
+          "label": "Background image",
+          "info": "1800x1000 recommended"
+        },
+        {
+          "id": "heading",
+          "type": "text",
+          "label": "Heading",
+          "default": "Slideshow"
+        },
+        {
+          "id": "text",
+          "type": "text",
+          "label": "Text",
+          "default": "Introduce customers to your shop with lifestyle and product imagery"
+        },
+        {
+          "id": "color",
+          "type": "color",
+          "label": "Text color",
+          "default": "#FFFFFF"
+        },
+        {
+          "id": "link",
+          "type": "url",
+          "label": "Background link"
+        },
+        {
+          "type": "header",
+          "content": "Buttons"
+        },
+        {
+          "id": "button_one_label",
+          "type": "text",
+          "label": "Button 1 label",
+          "default": "Button"
+        },
+        {
+          "id": "button_one_link",
+          "type": "url",
+          "label": "Button 1 link"
+        },
+        {
+          "id": "button_one_style",
+          "type": "select",
+          "label": "Button 1 style",
+          "options": [
+            {
+              "value": "primary",
+              "label": "Primary"
+            },
+            {
+              "value": "secondary",
+              "label": "Secondary"
+            }
+          ],
+          "default": "primary"
+        },
+        {
+          "id": "button_two_label",
+          "type": "text",
+          "label": "Button 2 label"
+        },
+        {
+          "id": "button_two_link",
+          "type": "url",
+          "label": "Button 2 link"
+        },
+        {
+          "id": "button_two_style",
+          "type": "select",
+          "label": "Button 2 style",
+          "options": [
+            {
+              "value": "primary",
+              "label": "Primary"
+            },
+            {
+              "value": "secondary",
+              "label": "Secondary"
+            }
+          ],
+          "default": "primary"
+        },
+        {
+          "type": "header",
+          "content": "Overlay"
+        },
+        {
+          "id": "show_overlay",
+          "type": "checkbox",
+          "label": "Enable overlay",
+          "default": true
+        },
+        {
+          "id": "overlay_color",
+          "type": "color",
+          "label": "Color",
+          "default": "#000000"
+        },
+        {
+          "id": "overlay_opacity",
+          "type": "range",
+          "label": "Opacity",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "slide"
+      },
+      {
+        "type": "slide"
+      }
+    ]
+  }
+}
+
+{% endschema %}

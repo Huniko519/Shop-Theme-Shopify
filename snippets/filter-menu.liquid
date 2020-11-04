@@ -1,0 +1,365 @@
+<!-- Filter Menu brought to you by Shopify Power Tools. Version 2.1 -->
+{%- unless settings.pt_temporary_disable -%}
+{%- if template contains 'collection' or settings.pt_show_only_on_collections != true -%}
+{%- assign pt_refine_text = settings.pt_refine_text | default: 'Refine' -%}
+{%- assign pt_clear_text = settings.pt_clear_text | default: 'clear' -%}
+{%- assign pt_view_all_text = settings.pt_view_all_text | default: 'view all' -%}
+{%- assign pt_collection_text = settings.pt_collection_text | default: 'Collection' -%}
+{%- assign pt_tags_text = settings.pt_tags_text | default: 'Tags' -%}
+{%- assign pt_sort_by_text = settings.pt_sort_by_text | default: 'Sort By' -%}
+{%- assign pt_search_placeholder_text = settings.pt_search_placeholder_text | default: 'search...' -%}
+<style type="text/css">
+{%- for css in shop.metafields.pt_filter_css -%}
+{%- unless css.first == 'system_css' -%}
+{{ css.last }}
+{%- endunless -%}
+{%- endfor -%}
+</style>
+<div class="filter-menu {% if collection.handle != blank and collection.handle == 'all' and current_tags == blank%}filter-menu-none-selected{% endif %} filter-selected-{{ collection.handle }}{% for tag in current_tags %} filter-selected-{{ tag | handleize }}{% endfor %}" data-total-tag-count="{{ collection.tags | size }}">
+    <div class="pt-mobile-header">
+        <a id="pt-nav-toggle" class="pt-nav-toggle" href="#"><span></span> <p>{{ settings.pt_mobile_text | default: 'Filter' }}</p></a>
+    </div>
+    {% unless settings.pt_show_refine == false %}
+    <div class="filter-group refine-header">
+        <h4>{{ pt_refine_text }}</h4>
+        {%- unless collection.handle == 'all' or collection.handle == nil and current_tags == nil -%}
+        <a class="filter-clear" href="/collections/{% if settings.pt_clear_to_current_collection %}{{ collection.handle }}{% else %}all{% endif %}">{{ pt_view_all_text }}</a>
+        {%- endunless -%}
+    </div>
+    {% endunless %}
+    {%- unless collection.handle != nil and template contains 'collection' -%}
+    {%- for menu_header in shop.metafields.pt_filter_menu -%}
+    {%- assign menu_items = menu_header.last | split: ',' -%}
+    {%- assign header_handle = menu_header.first | split: '-' -%}
+    {%- assign header_handle = menu_header.first | replace: header_handle.first, '' -%}
+    <div class="filter-group filter-group{{ header_handle }} {% if settings.pt_force_dropdown %}pt-display-dropdown{% endif %} {{ shop.metafields.pt_filter_display[menu_header.first] }} pt-filter-mode-{{ shop.metafields.pt_filter_mode[menu_header.first] }}">
+        <h4>{{ shop.metafields.pt_filter_header[menu_header.first] }}</h4>
+        <div class="scroll-content">
+        <input type="text" class="fm-search-box" name="q" placeholder="{{ pt_search_placeholder_text }}" style="display:none" autocomplete="off">
+        <ul class="nav{{ header_handle }}">
+            {%- for menu_item in menu_items -%}
+            {%- assign filter_collection = collections[menu_item] -%}
+            {%- if filter_collection and filter_collection.all_products_count != '' and filter_collection.all_products_count > 0 and filter_collection.title != nil and filter_collection.title != '' -%}
+            <li class="collection-container filter-active-{{ filter_collection.handle }} {% if tag_list contains menu_item %}active{% endif %} {% if current_tags contains menu_item or current_collection_handle == menu_item %}selected{% endif %} {%- unless current_tags or settings.pt_show_collection_count == false -%}has_collection_counts{%- endunless -%}">
+                <div class="collection-name">
+                    <a href="/collections/{{ menu_item }}" title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>{%- unless current_tags -%}<span class="collection-count">({{ filter_collection.all_products_count }})</span>{%- endunless -%}
+                </div>
+            </li>
+            {%- endif -%}
+            {%- endfor -%}
+        </ul>
+        </div>
+    </div>
+    {%- endfor -%}
+    {%- else -%}
+    {%- assign tag_list = collection.tags -%}
+    {%- assign current_collection_handle = collection.handle -%}
+    {%- assign displayed_collection_handles = '|' -%}
+    {%- if collection.metafields.sort_primary.collection_handle -%}
+    {%- assign current_collection_handle = collections[collection.metafields.sort_primary.collection_handle].handle -%}
+    {%- endif -%}
+    {%- for menu_header in shop.metafields.pt_filter_menu -%}
+    {%- assign has_items = false -%}
+    {%- assign has_multiple_items = false -%}
+    {%- assign has_selected = false -%}
+    {%- assign current_selected = '|' -%}
+    {%- assign menu_items = menu_header.last | split: ',' -%}
+    {%- for menu_item in menu_items -%}
+    {%- if tag_list contains menu_item or current_tags contains menu_item or current_collection_handle == menu_item -%}
+    {%- if has_items -%}
+    {%- assign has_multiple_items = true -%}
+    {%- endif -%}
+    {%- assign has_items = true -%}
+    {%- if current_tags contains menu_item or current_collection_handle == menu_item -%}
+    {%- assign current_selected = current_selected | append: menu_item | append: '|' -%}
+    {%- assign has_selected = true -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- endfor -%}
+    {%- if has_items -%}
+    {%- assign header_handle = menu_header.first | split: '-' -%}
+    {%- assign header_handle = menu_header.first | replace: header_handle.first, '' -%}
+  	{%- assign current_collection_handle_sep = current_collection_handle | prepend: '|' | append: '|' -%}
+    {%- if current_selected contains current_collection_handle_sep -%}{%- assign current_collection_handle_sep = 'all' -%}{%- assign current_selected = current_selected | replace: current_collection_handle_sep, '|' -%}{%- else -%}{%- assign current_collection_handle_sep = collection.handle -%}{%- endif -%}
+    {%- assign cleared_tags = current_tags | join: '|'  | prepend: '|' | append: '|' -%}
+    {%- assign current_selected_split = current_selected | split: '|' -%}
+    {%- for current_selected_tag in current_selected_split -%}
+    {%- unless '' == current_selected_tag -%}
+    {%- assign current_selected_tag = current_selected_tag | prepend: '|' | append: '|' -%}
+    {%- if cleared_tags contains current_selected_tag -%}
+    {%- assign cleared_tags = cleared_tags | replace_first: current_selected_tag, '|' -%}
+    {%- endif -%}
+    {%- endunless -%}
+    {%- endfor -%}
+    {%- assign cleared_tags = cleared_tags | replace: '||||', '|' | replace: '|||', '|' | replace: '||', '|' | remove_first: '|' | split: '|' -%}
+    {%- assign cleared_tags_handle = '' -%}
+    {%- for full_tag in cleared_tags -%}{% assign handle_tag = full_tag | handle %}{%- assign cleared_tags_handle = cleared_tags_handle | append:  cleared_tags_handle | append: '|' | append: handle_tag -%}{%- endfor -%}
+    {%- assign cleared_tags = cleared_tags_handle | remove_first: '|' | split: '|' | uniq | join: '+' -%}
+    {%- unless current_collection_handle_sep -%}
+    {%- assign current_collection_handle_sep = 'all' -%}
+    {%- endunless -%}
+    <div class="filter-group filter-group{{ header_handle }} {% if has_selected %}has_group_selected{% endif %} {% if has_multiple_items %}has_mutliple_items{% else %}has_single_item{% endif %} {% if settings.pt_force_dropdown %}pt-display-dropdown{% endif %} {{ shop.metafields.pt_filter_display[menu_header.first] }} pt-filter-mode-{{ shop.metafields.pt_filter_mode[menu_header.first] }} ">
+        <h4>{{ shop.metafields.pt_filter_header[menu_header.first] }}</h4>
+        <div class="scroll-content">
+        <input type="text" class="fm-search-box" name="q" placeholder="{{ pt_search_placeholder_text }}" style="display:none" autocomplete="off">
+        <ul class="nav{{ header_handle }} {% if has_selected %}has_selected{% endif %}">
+            {%- if shop.metafields.pt_filter_mode[menu_header.first] == 'switcher' -%}
+          	{%- for menu_item in menu_items -%}
+                {%- assign filter_collection = collections[menu_item] -%}
+                {%- if filter_collection and filter_collection.title != nil and filter_collection.title != '' -%}
+                {%- assign displayed_collection_handles = displayed_collection_handles | append: menu_item | append: '|' -%}
+                <li class="collection-container filter-active-{{ menu_item }} {% if tag_list contains menu_item %}active{% endif %} {% if current_tags contains menu_item or current_collection_handle == menu_item %}selected{% endif %} {% if settings.pt_show_collection_count %}has_collection_counts{% endif %}">
+                  <div class="collection-name">
+                    {%- if current_tags contains menu_item -%}{{ '<i class="check-icon"></i> ' | append: filter_collection.title | link_to_remove_tag: menu_item }}
+                    {%- elsif current_collection_handle == menu_item -%}
+                    <a href="/collections/all{%- if current_tags -%}/{{ current_tags | join: '+' }}{%- endif -%}" title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>
+                    {%- else -%}
+                    <a href="/collections/{{ menu_item }}" title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>
+                    {%- endif -%}
+                    <span class="collection-count">({{ filter_collection.all_products_count }})</span>
+                  </div>
+                </li>
+                {%- endif -%}
+          	{%- endfor -%}
+            {%- elsif shop.metafields.pt_filter_mode[menu_header.first] == 'replacer' -%}
+              {%- assign common_filter_tags = collections[current_collection_handle_sep].all_tags -%}
+              {%- assign cleared_tags_list = cleared_tags_handle | remove_first: '|' | split: '|' | uniq -%}
+              {%- for cleared_tag in cleared_tags_list -%}
+                {%- if collections[cleared_tag] -%}
+                  {%- assign common_filter_tags_text = nil -%}
+                  {%- assign additional_filter_tags = collections[cleared_tag].all_tags -%}
+                  {%- for common_tag in common_filter_tags -%}
+                  {%- if additional_filter_tags contains common_tag -%}
+                  {%- assign common_filter_tags_text = common_filter_tags_text | append: '|' | append: common_tag -%}
+                  {%- endif -%}
+                  {%- endfor -%}
+                  {%- assign common_filter_tags = common_filter_tags_text | remove_first: '|' | split: '|' | uniq -%}
+                {%- endif -%}
+              {%- endfor -%}
+          	  {%- for menu_item in menu_items -%}
+          		{%- if common_filter_tags contains menu_item or current_tags contains menu_item or current_collection_handle == menu_item -%}
+          		{%- assign filter_collection = collections[menu_item] -%}
+                {%- if filter_collection and filter_collection.title != nil and filter_collection.title != '' -%}
+                {%- assign displayed_collection_handles = displayed_collection_handles | append: menu_item | append: '|' -%}
+                <li class="collection-container filter-active-{{ menu_item }} {% if tag_list contains menu_item %}active{% endif %} {% if current_tags contains menu_item or current_collection_handle == menu_item %}selected{% endif %} {% unless current_tags or current_collection_handle_sep != 'all' or settings.pt_show_collection_count == false %}has_collection_counts{% endunless %}">
+                  <div class="collection-name">
+                      {%- if current_tags contains menu_item -%}{{ '<i class="check-icon"></i> ' | append: filter_collection.title | link_to_remove_tag: menu_item }}
+                      {%- elsif current_collection_handle == menu_item -%}
+                      <a href="/collections/all{%- if current_tags -%}/{{ current_tags | join: '+' }}{%- endif -%}" title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>
+                      {%- else -%}
+                      {%- assign replacer_tags = cleared_tags_handle | append: '|' | append: menu_item | remove_first: '|' | split: '|' | uniq | join: '+' -%}
+                      {%- if current_collection_handle == 'all' or current_collection_handle_sep == 'all' -%}
+                    	<a href="/collections/{{ menu_item }}{%- unless '|' == cleared_tags or '' == cleared_tags -%}/{{ cleared_tags }}{%- endunless -%}" title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>
+                      {%- else -%}
+                    	<a href="/collections/{{ current_collection_handle_sep }}/{{ replacer_tags }}" title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>
+                      {%- endif -%}
+                   	  {%- endif -%}
+                    {%- unless current_tags or current_collection_handle_sep != 'all' -%}<span class="collection-count">({{ filter_collection.all_products_count }})</span>{%- endunless -%}
+                  </div>
+            	</li>
+            	{%- endif -%}
+                {%- elsif settings.pt_show_inactive_filters -%}
+                {%- assign filter_collection = collections[menu_item] -%}
+                {%- if filter_collection and filter_collection.title != nil and filter_collection.title != '' -%}
+                <li class="collection-container filter-active-{{ menu_item }} inactive">
+                    <div class="collection-name">
+                        <a title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>
+                    </div>
+                </li>
+                {%- endif -%}
+                {%- endif -%}
+          	  {%- endfor -%}
+            {%- else -%}
+          	{%- for menu_item in menu_items -%}
+            {%- if tag_list contains menu_item or current_tags contains menu_item or current_collection_handle == menu_item -%}
+            {%- assign filter_collection = collections[menu_item] -%}
+            {%- if filter_collection and filter_collection.title != nil and filter_collection.title != '' -%}
+            {%- assign displayed_collection_handles = displayed_collection_handles | append: menu_item | append: '|' -%}
+            <li class="collection-container filter-active-{{ menu_item }} {% if tag_list contains menu_item %}active{% endif %} {% if current_tags contains menu_item or current_collection_handle == menu_item %}selected{% endif %} {% unless current_tags or current_collection_handle != 'all' or settings.pt_show_collection_count == false %}has_collection_counts{% endunless %}">
+                <div class="collection-name">
+                    {%- if current_tags contains menu_item -%}{{ '<i class="check-icon"></i> ' | append: filter_collection.title | link_to_remove_tag: menu_item }}
+                    {%- elsif current_collection_handle == menu_item -%}
+                    <a href="/collections/all{%- if current_tags -%}/{{ current_tags | join: '+' }}{%- endif -%}" title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>
+                    {%- elsif current_collection_handle == 'all' -%}
+                    <a href="/collections/{{ menu_item }}{%- if current_tags -%}/{{ current_tags | join: '+' }}{%- endif -%}" title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>{%- unless current_tags -%}<span class="collection-count">({{ filter_collection.all_products_count }})</span>{%- endunless -%}
+                    {%- else -%}{{ '<i class="check-icon"></i> ' | append: filter_collection.title | link_to_add_tag: menu_item }}{%- endif -%}
+                </div>
+            </li>
+            {%- endif -%}
+            {%- elsif settings.pt_show_inactive_filters -%}
+            {%- assign filter_collection = collections[menu_item] -%}
+            {%- if filter_collection and filter_collection.title != nil and filter_collection.title != '' -%}
+            <li class="collection-container filter-active-{{ filter_collection.handle }} inactive">
+                <div class="collection-name">
+                    <a title="{{ filter_collection.title | escape }}"><i class="check-icon"></i> {{ filter_collection.title | escape }}</a>
+                </div>
+            </li>
+            {%- endif -%}
+            {%- endif -%}
+          	{%- endfor -%}
+          {%- endif -%}
+        </ul>
+        </div>
+        {%- unless '|' == current_selected -%}
+        <a class="filter-clear" href="/collections/{{ current_collection_handle_sep }}{%- unless '|' == cleared_tags or '' == cleared_tags -%}/{{ cleared_tags }}{%- endunless -%}">{{ pt_clear_text }}</a>
+        {%- endunless -%}
+    </div>
+    {%- endif -%}
+    {%- endfor -%}
+    {%- assign current_collection_handle_sep = current_collection_handle | prepend: '|' | append: '|' -%}
+    {%- if settings.pt_show_tags_grouped -%}
+        {%- assign tag_groups = '' -%}
+        {%- for tag in collection.tags -%}
+        {%- if tag contains '_' -%}
+            {%- capture tag_groups -%}{%- unless tag_groups == blank  -%}{{ tag_groups }}|{%- endunless -%}{{ tag | split: '_' | first }}{%- endcapture -%}
+        {%- endif -%}
+        {%- endfor -%}
+        {%- assign tag_group_array = tag_groups | split: '|' | uniq -%}
+        {%- for tag_group in tag_group_array -%}
+            {%- assign has_selected = false -%}
+            {%- assign current_selected = '|' -%}
+            {%- for tag in current_tags -%}
+                {%- assign tag_prefix = tag | split: '_' | first -%}
+                {%- if tag_group == tag_prefix -%}
+                    {%- assign has_selected = true -%}
+                {%- endif -%}
+            {%- endfor -%}
+            <div class="filter-group filter-group-tags-group-{{ tag_group | handle }} {% if has_selected %}has_group_selected{% endif %} {% if settings.pt_force_dropdown %}pt-display-dropdown{% endif %}">
+                <h4>{{ tag_group }}</h4>
+                <div class="scroll-content">
+                  <input type="text" class="fm-search-box" name="q" placeholder="{{ pt_search_placeholder_text }}" style="display:none" autocomplete="off">
+                    <ul class="nav-tags-group">
+                        {%- for tag in collection.tags -%}
+                          {%- assign tag_prefix = tag | split: '_' | first -%}
+                          {%- if tag_prefix != tag and tag_group == tag_prefix -%}
+                            {%- assign tag_handle = tag | handle -%}
+                            <li class="collection-container filter-active-{{ tag_handle }} active {% if current_tags contains tag %}selected{% endif %}">
+                                <div class="collection-name">
+                                {%- if current_tags contains tag -%}{{ '<i class="check-icon"></i> ' | append: tag | remove_first: tag_group | remove_first: '_' | link_to_remove_tag: tag }}{%- assign current_selected = current_selected | append: tag | append: '|' -%}
+                                {%- else -%}{{ '<i class="check-icon"></i> ' | append: tag | remove_first: tag_group | remove_first: '_' | link_to_add_tag: tag_handle }}{%- endif -%}
+                                </div>
+                            </li>
+                          {%- endif -%}
+                        {%- endfor -%}
+                    </ul>
+                </div>
+                {%- unless '|' == current_selected -%}
+                {%- assign cleared_tags = current_tags | join: '|'  | prepend: '|' | append: '|' -%}
+                {%- assign current_selected_split = current_selected | split: '|' -%}
+                {%- for current_selected_tag in current_selected_split -%}
+                {%- unless '' == current_selected_tag -%}
+                {%- assign current_selected_tag = current_selected_tag | prepend: '|' | append: '|' -%}
+                {%- if cleared_tags contains current_selected_tag -%}
+                {%- assign cleared_tags = cleared_tags | replace_first: current_selected_tag, '|' -%}
+                {%- endif -%}
+                {%- endunless -%}
+                {%- endfor -%}
+                {%- assign cleared_tags = cleared_tags | replace: '||||', '|' | replace: '|||', '|' | replace: '||', '|' | remove_first: '|' | split: '|' -%}
+              	{%- assign cleared_tags_handle = '' -%}
+              	{%- for full_tag in cleared_tags -%}{% assign handle_tag = full_tag | handle %}{%- assign cleared_tags_handle = cleared_tags_handle | append:  cleared_tags_handle | append: '|' | append: handle_tag -%}{%- endfor -%}
+              	{%- assign cleared_tags = cleared_tags_handle | remove_first: '|' | split: '|' | uniq | join: '+' -%}
+                <a class="filter-clear" href="/collections/{{ current_collection_handle }}{% unless '|' == cleared_tags or '' == cleared_tags %}/{{ cleared_tags }}{% endunless %}">{{ pt_clear_text }}</a>
+                {%- endunless -%}
+            </div>
+        {%- endfor -%}
+    {%- endif -%}
+    {%- if settings.pt_show_tags_group -%}
+    {%- if current_collection_handle == collection.handle and current_collection_handle != 'all' -%}
+    {%- assign has_tags = false -%}
+    {%- assign has_selected = false -%}
+    {%- for tag in collection.tags -%}
+        {%- unless tag contains '_' -%}
+        {%- assign tag_handle = tag | handleize -%}
+        {%- if tag_handle != tag -%}
+            {%- assign has_tags = true -%}
+        {%- endif -%}
+        {%- endunless -%}
+    {%- endfor -%}
+    {% if has_tags %}
+    {%- assign current_selected = '|' -%}
+    {%- for tag in current_tags -%}
+        {%- unless tag contains '_' -%}
+        {%- assign tag_handle = tag | handle -%}
+        {%- if tag != tag_handle -%}
+            {%- assign has_selected = true -%}
+        {%- endif -%}
+        {%- endunless -%}
+    {%- endfor -%}
+    <div class="filter-group filter-group-tags-options {% if has_selected %}has_group_selected{% endif %} {% if settings.pt_force_dropdown %}pt-display-dropdown{% endif %}">
+        <h4>{{ pt_tags_text }}</h4>
+        <div class="scroll-content">
+        <input type="text" class="fm-search-box" name="q" placeholder="{{ pt_search_placeholder_text }}" style="display:none" autocomplete="off">
+        <ul class="nav-tags-group">
+            {%- for tag in collection.tags -%}
+                {%- unless tag contains '_' -%}
+                {%- assign tag_handle = tag | handleize -%}
+                {%- if tag_handle != tag -%}
+                <li class="collection-container filter-active-{{ tag_handle }} active {% if current_tags contains tag %}selected{% endif %}">
+                    <div class="collection-name">
+                    {%- if current_tags contains tag -%}{{ '<i class="check-icon"></i> ' | append: tag | link_to_remove_tag: tag }}{%- assign current_selected = current_selected | append: tag | append: '|' -%}
+                    {%- else -%}{{ '<i class="check-icon"></i> ' | append: tag | link_to_add_tag: tag }}{%- endif -%}
+                    </div>
+                </li>
+                {%- endif -%}
+                {%- endunless -%}
+            {%- endfor -%}
+        </ul>
+        </div>
+        {%- unless '|' == current_selected -%}
+        {%- assign cleared_tags = current_tags | join: '|'  | prepend: '|' | append: '|' -%}
+        {%- assign current_selected_split = current_selected | split: '|' -%}
+        {%- for current_selected_tag in current_selected_split -%}
+        {%- unless '' == current_selected_tag -%}
+        {%- assign current_selected_tag = current_selected_tag | prepend: '|' | append: '|' -%}
+        {%- if cleared_tags contains current_selected_tag -%}
+        {%- assign cleared_tags = cleared_tags | replace_first: current_selected_tag, '|' -%}
+        {%- endif -%}
+        {%- endunless -%}
+        {%- endfor -%}
+        {%- assign cleared_tags = cleared_tags | replace: '||||', '|' | replace: '|||', '|' | replace: '||', '|' | remove_first: '|' | split: '|' -%}
+        {%- assign cleared_tags_handle = '' -%}
+      	{%- for full_tag in cleared_tags -%}{% assign handle_tag = full_tag | handle %}{%- assign cleared_tags_handle = cleared_tags_handle | append:  cleared_tags_handle | append: '|' | append: handle_tag -%}{%- endfor -%}
+      	{%- assign cleared_tags = cleared_tags_handle | remove_first: '|' | split: '|' | uniq | join: '+' -%}
+      	<a class="filter-clear" href="/collections/{{ current_collection_handle }}{% unless '|' == cleared_tags or '' == cleared_tags %}/{{ cleared_tags }}{% endunless %}">{{ pt_clear_text }}</a>
+        {%- endunless -%}
+    </div>
+    {%- endif -%}
+    {%- endif -%}
+    {%- endif -%}
+    {%- unless displayed_collection_handles contains current_collection_handle_sep or current_collection_handle == 'all' -%}
+    <div class="filter-group filter-group-not-shown has_group_selected {% if settings.pt_force_dropdown %}pt-display-dropdown{% endif %}">
+      <h4>{{ pt_collection_text }}</h4>
+      <div class="scroll-content">
+        <ul class="nav-not-shown">
+            <li class="collection-container filter-active-{{ collection.handle }} active selected">
+                <div class="collection-name">
+                    <a href="/collections/all{%- if current_tags -%}/{{ current_tags | join: '+' }}{%- endif -%}" title="{{ collection.title | escape }}"><i class="check-icon"></i> {{ collection.title }}</a>
+                </div>
+            </li>
+        </ul>
+        <a class="filter-clear" href="/collections/all{%- if current_tags -%}/{{ current_tags | join: '+' }}{%- endif -%}">{{ pt_clear_text }}</a>
+      </div>
+    </div>
+    {%- endunless -%}
+    {%- endunless -%}
+    {%- if settings.pt_show_sort_by_group and collection.handle != nil and template contains 'collection' -%}
+    {%- assign current_sort_order = collection.sort_by | default: collection.default_sort_by -%}
+    <div class="filter-group filter-group-sort-orders {% if settings.pt_force_dropdown %}pt-display-dropdown{% endif %}">
+      <h4>{{ pt_sort_by_text }}</h4>
+      <div class="scroll-content">
+        <ul class="nav-sort-orders">
+          {%- if settings.pt_sort_manual_text != blank and collection.default_sort_by == 'manual' -%}<li class="active {% if current_sort_order == 'manual' %}selected{% endif %}"><div class="collection-name"><a href="{{ request.path }}{% unless current_sort_order == 'manual' %}?sort_by=manual{% endunless %}">{% if settings.pt_show_sort_by_checkboxes %}<i class="check-icon"></i> {% endif %}{{ settings.pt_sort_manual_text }}</a></div></li>{%- endif -%}
+          {%- if settings.pt_sort_price_asc_text != blank -%}<li class="active {% if current_sort_order == 'price-ascending' %}selected{% endif %}"><div class="collection-name"><a href="{{ request.path }}{% unless current_sort_order == 'price-ascending' %}?sort_by=price-ascending{% endunless %}">{% if settings.pt_show_sort_by_checkboxes %}<i class="check-icon"></i> {% endif %}{{ settings.pt_sort_price_asc_text }}</a></div></li>{%- endif -%}
+          {%- if settings.pt_sort_price_desc_text != blank -%}<li class="active {% if current_sort_order == 'price-descending' %}selected{% endif %}"><div class="collection-name"><a href="{{ request.path }}{% unless current_sort_order == 'price-descending' %}?sort_by=price-descending{% endunless %}">{% if settings.pt_show_sort_by_checkboxes %}<i class="check-icon"></i> {% endif %}{{ settings.pt_sort_price_desc_text }}</a></div></li>{%- endif -%}
+          {%- if settings.pt_sort_created_desc_text != blank -%}<li class="active {% if current_sort_order == 'created-descending' %}selected{% endif %}"><div class="collection-name"><a href="{{ request.path }}{% unless current_sort_order == 'created-descending' %}?sort_by=created-descending{% endunless %}">{% if settings.pt_show_sort_by_checkboxes %}<i class="check-icon"></i> {% endif %}{{ settings.pt_sort_created_desc_text }}</a></div></li>{%- endif -%}
+          {%- if settings.pt_sort_created_asc_text != blank -%}<li class="active {% if current_sort_order == 'created-ascending' %}selected{% endif %}"><div class="collection-name"><a href="{{ request.path }}{% unless current_sort_order == 'created-ascending' %}?sort_by=created-ascending{% endunless %}">{% if settings.pt_show_sort_by_checkboxes %}<i class="check-icon"></i> {% endif %}{{ settings.pt_sort_created_asc_text }}</a></div></li>{%- endif -%}
+          {%- if settings.pt_sort_best_selling_text != blank -%}<li class="active {% if current_sort_order == 'best-selling' %}selected{% endif %}"><div class="collection-name"><a href="{{ request.path }}{% unless current_sort_order == 'best-selling' %}?sort_by=best-selling{% endunless %}">{% if settings.pt_show_sort_by_checkboxes %}<i class="check-icon"></i> {% endif %}{{ settings.pt_sort_best_selling_text }}</a></div></li>{%- endif -%}
+          {%- if settings.pt_sort_title_asc_text != blank -%}<li class="active {% if current_sort_order == 'title-ascending' %}selected{% endif %}"><div class="collection-name"><a href="{{ request.path }}{% unless current_sort_order == 'title-ascending' %}?sort_by=title-ascending{% endunless %}">{% if settings.pt_show_sort_by_checkboxes %}<i class="check-icon"></i> {% endif %}{{ settings.pt_sort_title_asc_text }}</a></div></li>{%- endif -%}
+          {%- if settings.pt_sort_title_desc_text != blank -%}<li class="active {% if current_sort_order == 'title-descending' %}selected{% endif %}"><div class="collection-name"><a href="{{ request.path }}{% unless current_sort_order == 'title-descending' %}?sort_by=title-descending{% endunless %}">{% if settings.pt_show_sort_by_checkboxes %}<i class="check-icon"></i> {% endif %}{{ settings.pt_sort_title_desc_text }}</a></div></li>{%- endif -%}
+         </ul>
+       </div>
+    </div>
+    {%- endif -%}
+</div>
+{% endif %}
+{% endunless %}

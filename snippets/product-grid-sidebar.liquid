@@ -1,0 +1,35 @@
+<div class="productgrid--sidebar">
+{%-comment-%}{% include 'filter-menu' %}{%-endcomment-%}
+  {% if filter_position == 'above_menus' %}
+    {% include 'product-grid-sidebar-filters' %}
+  {% endif %}
+  {% if section.blocks.size > 0 %}
+    {% assign sidebar_menu_depth = menu_depth | times: 1 %}
+    <div class="productgrid--sidebar-section">
+      {% for block in section.blocks %}
+        {% assign menu = block.settings.menu %}
+        {% if linklists[menu] == blank or linklists[menu].links.size == 0 %}
+          {% break %}
+        {% endif %}
+        <h2 class="productgrid--sidebar-title">
+          {{ linklists[menu].title }}
+        </h2>
+        <div class="productgrid--sidebar-item productgrid--sidebar-menu">
+          {%
+            include 'navmenu',
+            menu: block.settings.menu,
+            depth: 1,
+            max_depth: sidebar_menu_depth,
+            submenu_arrows: false,
+            is_site_nav: false,
+            has_triggers: false,
+            aria_expanded: true
+          %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% unless filter_position == 'above_menus' %}
+    {% include 'product-grid-sidebar-filters' %}
+  {% endunless %}
+</div>

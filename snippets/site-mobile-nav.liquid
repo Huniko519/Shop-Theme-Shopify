@@ -1,0 +1,30 @@
+<div class="site-mobile-nav" id="site-mobile-nav" data-mobile-nav>
+  <div class="mobile-nav-panel" data-mobile-nav-panel>
+
+    {% include 'site-header-actions' %}
+
+    <a
+      class="mobile-nav-close"
+      href="#site-header-nav"
+      data-mobile-nav-close>
+      {% include 'icon-menu-close' %}
+      <span class="show-for-sr">{{ 'general.accessibility.close' | t }}</span>
+    </a>
+
+    <div class="mobile-nav-content">
+      {%
+        include 'navmenu',
+        menu: section.settings.menu,
+        depth: 1,
+        max_depth: 3,
+        submenu_arrows: true,
+        has_triggers: true,
+        aria_expanded: false
+        blocks: blocks
+      %}
+    </div>
+
+  </div>
+
+  <div class="mobile-nav-overlay" data-mobile-nav-overlay></div>
+</div>

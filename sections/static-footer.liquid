@@ -1,0 +1,191 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="static-footer">
+</script>
+
+<section class="site-footer-wrapper">
+  {% if section.blocks.size %}
+    <div class="site-footer-item">
+      <div class="site-footer-blocks column-count-{{ section.blocks.size }}">
+        {% for block in section.blocks %}
+          {% include 'footer-block' %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="site-footer-item">
+    <div class="site-footer-information">
+      <div class="site-footer-left">
+
+        {% if linklists[section.settings.additional_menu].links != blank %}
+          <nav
+            class="site-footer-navigation"
+            aria-label="{{ 'general.accessibility.nav_footer' | t }}"
+          >
+            {%
+              include 'navmenu',
+              menu: section.settings.additional_menu,
+              depth: 1,
+              max_depth: 1
+            %}
+          </nav>
+        {% endif %}
+
+        <p class="site-footer-credits">
+          {% assign year = 'now' | date: '%Y' %}
+          {{ 'footer.general.copyright_html' | t: year: year, shop_name: shop.name }}
+        </p>
+
+        <p class="site-footer-credits">
+          {{ 'footer.general.copyright_credit_html' | t }} {{ powered_by_link }}
+        </p>
+      </div>
+
+      {% if section.settings.payment_icons and shop.enabled_payment_types.size > 0 %}
+        <div class="site-footer-right">
+          {% comment %}
+            - Test shop payment options against Shopify's provided list of payment gateways
+              (https://help.shopify.com/themes/customization/store/add-credit-card-icons)
+          {% endcomment %}
+          {% assign payment_icons_available = 'amazon_payments|american_express|android_pay|apple_pay|bitcoin|cirrus|dankort|diners_club|discover|dogecoin|dwolla|forbrugsforeningen|interac|jcb|litecoin|maestro|master|paypal|visa|stripe|shopify_pay' | split: '|' %}
+          <ul class="payment-icons">
+            {%- for type in shop.enabled_payment_types -%}
+              {%- if payment_icons_available contains type -%}
+                <li class="payment-icons-item">
+                  {%- include 'icon-payment-icons', id: type -%}
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Footer",
+  "max_blocks": 5,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Payment icons"
+    },
+    {
+      "type": "checkbox",
+      "id": "payment_icons",
+      "label": "Enable payment icons",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Additional menu"
+    },
+    {
+      "type": "link_list",
+      "id": "additional_menu",
+      "label": "Menu",
+      "default": "footer",
+      "info": "This menu won't show dropdown items."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Menu",
+      "settings": [
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "Menu",
+          "default": "main-menu",
+          "info": "This menu won't show dropdown items."
+        }
+      ]
+    },
+    {
+      "type": "rich_text",
+      "name": "Rich text",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Rich text"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Use this section to welcome customers to your store, say a bit about your brand, or share news and seasonal promotions.</p>"
+        }
+      ]
+    },
+    {
+      "type": "social_accounts",
+      "name": "Social accounts",
+      "limit": 1,
+      "settings": [
+       {
+         "type": "paragraph",
+         "content": "Social links can be managed in your General settings."
+       }
+      ]
+    },
+    {
+      "type": "newsletter",
+      "name": "Newsletter",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Subscribe"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Invite customers to join your mailing list.</p>"
+        }
+      ]
+    },
+{
+"name":"Image",
+"type":"image",
+"settings":[
+{
+"type":"image_picker",
+"id":"image",
+"label":"Image"
+},
+{
+"type":"url",
+"label":"Link",
+"id":"link"
+}
+]
+}
+  ],
+  "default": {
+    "settings": {
+      "additional_menu": "footer"
+    },
+    "blocks": [
+      {
+        "type": "menu",
+        "settings": {}
+      },
+      {
+        "type": "newsletter",
+        "settings": {}
+      }
+    ]
+  }
+}
+
+{% endschema %}

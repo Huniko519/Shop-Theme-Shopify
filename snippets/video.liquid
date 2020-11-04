@@ -1,0 +1,63 @@
+<div
+  class="
+    video
+    video-aspect-ratio-{{ aspect_ratio }}
+  "
+  data-video="
+    {%- if url contains 'youtube' -%}
+      youtube
+    {%- else if url contains 'vimeo' -%}
+      vimeo
+    {%- endif -%}
+  "
+>
+  <div
+    class="video-cover"
+    {% if cover %}
+      style="background-image: url('{{ cover | img_url: '1800x1000' }}')"
+    {% endif %}
+    data-video-cover
+  >
+    <div
+      class="video-overlay"
+      {% if overlay %}
+        style="background-color: {{ overlay }}"
+      {% endif %}
+    >
+      <button
+        class="
+          video-play-button
+          {% unless cover or slideshow %}
+            no-cover
+          {% endunless %}
+        "
+        data-video-play-button
+      >
+        {% include 'icon-library', id: 'icon-play' %}
+        {% include 'icon-library', id: 'icon-loading' %}
+      </button>
+    </div>
+  </div>
+
+  {% if url contains 'youtube' %}
+    <div
+      class="
+        youtube
+        {% if slideshow %}
+          hide-player
+        {% endif %}
+      "
+      data-youtube data-video-url="{{ url }}"
+    ></div>
+  {% else if url contains 'vimeo' %}
+    <div
+    class="
+      vimeo
+      {% if slideshow %}
+        hide-player
+      {% endif %}
+    "
+    data-vimeo data-video-url="{{ url }}"
+    ></div>
+  {% endif %}
+</div>

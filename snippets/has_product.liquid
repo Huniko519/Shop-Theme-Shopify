@@ -1,0 +1,90 @@
+{% assign thereisproduct = false %}    
+    {% for product in collection.products %}    
+      {% if product.tags contains tag %}
+      	{% assign thereisproduct = true %}           			
+      {% endif %}	
+    {% endfor %}    	  
+    {% if collection.all_products_count > 50 %}
+      {% for product in collection.products offset:50 %}    
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 100 %}
+      {% for product in collection.products offset:100 %}    
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 150 %}
+      {% for product in collection.products offset:150 %}    
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 200 %}
+      {% for product in collection.products offset:200 %}    
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 250 %}
+      {% for product in collection.products offset:250 %}    
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 300 %}
+      {% for product in collection.products offset:300 %}
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 350 %}
+      {% for product in collection.products offset:350 %}    
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 400 %}
+      {% for product in collection.products offset:400 %}    
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 450 %}
+      {% for product in collection.products offset:450 %}    
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 500 %}
+      {% for product in collection.products offset:500 %}
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 550 %}
+      {% for product in collection.products offset:550 %}
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}
+    {% if collection.all_products_count > 600 %}
+      {% for product in collection.products offset:600 %}
+        {% if product.tags contains tag %}
+        	{% assign thereisproduct = true %}           			
+        {% endif %}	
+      {% endfor %}  
+    {% endif %}

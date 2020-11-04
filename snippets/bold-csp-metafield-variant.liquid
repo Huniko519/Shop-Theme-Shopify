@@ -1,0 +1,128 @@
+{%- comment -%}
+
+BOLD-CSP-METAFIELD-VARIANT.LIQUID
+Last updated: 2018-July-31
+
+NOTE: Tag matching between customer tags and the shop metafield is case INSENSITIVE
+
+FLAGS:
+  base_product:      {product object}                          Base product object for the variant, used to check/set several properties. If not supplied, defaults to bold_product. If no bold_product is set, defaults to product
+  hide_action:       'skip' | 'none'  (default)                Forces a 'continue' to skip hidden variants when 'skip' is set
+  customer_tag:      {string} | null (default)                 If set, forces bold-variant to calculate as though the customer had the specified tag
+
+{%- endcomment -%}
+
+{%- comment -%}
+============================================================================================================
+    ASSIGN LIQUID VARIABLES
+============================================================================================================
+{%- endcomment -%}
+
+{%- assign bold_csp_variant = bold-csp-metafield-variant | default: bold_variant | default: variant | default: item.variant -%}
+{%- assign bold_csp_variant_base_product = base_product | default: bold_product | default: product | default: item.product | default: item -%}
+{%- assign bold_csp_customer_tag = customer_tag | default: csp_customer_tag -%}
+{%- assign bold_csp_variant_id = bold_csp_variant.id -%}
+
+{%- unless bold_csp_customer_tag -%}
+  {%- assign bold_csp_customer_tag = 'default' -%}
+  {%- if customer.tags and shop.metafields.shop_csp_tag_group.shop_csp_tag -%}
+    {%- assign all_shop_tags = shop.metafields.shop_csp_tag_group.shop_csp_tag | append: ',default' | split: ',' -%}
+    {%- assign customer_tags = customer.tags | join: ',' | split: ',' -%}
+    {%- for customer_tag in customer_tags -%}
+      {%- if all_shop_tags contains customer_tag -%}
+        {%- assign bold_csp_customer_tag = customer_tag -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+  {%- unless customer_tag -%}
+    {%- assign csp_customer_tag = bold_csp_customer_tag -%}
+  {%- endunless -%}
+{%- endunless -%}
+
+{%- assign csp_metafield_namespace = 'csp' | append: bold_csp_variant_id -%}
+{%- assign csp_metafield_key_single = bold_csp_customer_tag | append: '~' | append: '1' -%}
+{%- assign metafield_data_single = bold_csp_variant_base_product.metafields[csp_metafield_namespace][csp_metafield_key_single] | split: ',' -%}
+
+{%- assign tag_default_discount = shop.metafields.bold_csp_defaults[bold_csp_customer_tag] -%}
+
+{%- comment -%} Fall back to logged-out (default) discount {%- endcomment -%}
+{%- if metafield_data_single == blank and tag_default_discount == blank -%}
+  {%- assign csp_customer_tag = 'default' -%}
+  {%- assign metafield_data_single = bold_csp_variant_base_product.metafields[csp_metafield_namespace]['default~1'] | split: ',' -%}
+{%- endif -%}
+
+{%- assign across_variants_mode = metafield_data_single[5] | default: '0' -%}
+
+{%- assign item_qty = line_item.quantity | default: 1 -%}
+{%- if line_item != blank -%}
+  {%- assign current_product_total = 0 -%}
+  {%- for inner_item in cart.items -%}
+    {%- if across_variants_mode == '0' and line_item.id == inner_item.id -%}
+      {%- comment -%} Use the variant qty to find discounts {%- endcomment -%}
+      {%- assign current_product_total = current_product_total | plus: inner_item.quantity -%}
+    {%- elsif across_variants_mode == '1' and line_item.product_id == inner_item.product_id -%}
+      {%- comment -%} Use the product qty to find discounts {%- endcomment -%}
+      {%- assign current_product_total = current_product_total | plus: inner_item.quantity -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- assign item_qty = current_product_total -%}
+{%- endif -%}
+
+{%- for qty in (1..item_qty) reversed -%}
+  {%- assign csp_metafield_key = bold_csp_customer_tag | append: '~' | append: qty -%}
+  {%- assign metafield_data = bold_csp_variant_base_product.metafields[csp_metafield_namespace][csp_metafield_key] | split: ',' -%}
+  {%- if metafield_data != blank -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- if metafield_data != blank -%}
+
+  {%- assign price_type = metafield_data[0] -%}
+  {%- assign discount_value = metafield_data[1] | times: 1 -%}
+  {%- assign cents = metafield_data[2] -%}
+  {%- assign taxable = metafield_data[3] -%}
+  {%- assign use_discount_compare_at = metafield_data[4] -%}
+
+  {%- if use_discount_compare_at == '1' and bold_csp_variant.compare_at_price > 0 -%}
+    {%- assign new_price = bold_csp_variant.compare_at_price -%}
+  {%- else -%}
+    {%- assign new_price = bold_variant_price | default: bold_csp_variant.price -%}
+  {%- endif -%}
+
+  {%- case price_type -%}
+    {%- when '%' -%}
+      {%- assign new_price = new_price | times: discount_value | round -%}
+    {%- when '$' -%}
+      {%- assign new_price = discount_value | times: 100 | round -%}
+    {%- when '-' -%}
+      {%- assign discount_value = discount_value | times: 100 | round -%}
+      {%- assign new_price = new_price | minus: discount_value | round -%}
+  {%- endcase -%}
+
+  {%- if new_price < 0 -%}
+    {%- assign new_price = bold_variant_price | default: bold_csp_variant.price -%}
+  {%- endif -%}
+
+  {%- if cents != '' and cents != null -%}
+    {%- assign vanity_price = new_price | times: 0.01 | floor | times: 100 | plus: cents -%}
+    {%- assign new_price = vanity_price -%}
+  {%- endif -%}
+
+  {%- if new_price < bold_csp_variant.price -%}
+  	{%- assign bold_variant_price = new_price -%}
+  {%- endif -%}
+
+  {%- if taxable == '1' -%}
+    {%- assign bold_variant_taxable = true -%}
+  {%- else -%}
+    {%- assign bold_variant_taxable = false -%}
+  {%- endif -%}
+
+{%- else -%}
+  {%- comment -%} APPLY TAG DEFAULT DISCOUNT {%- endcomment -%}
+  {%- if tag_default_discount != blank -%}
+    {%- assign new_price = bold_variant_price | default: bold_csp_variant.price -%}
+    {%- assign bold_variant_price = new_price | times: tag_default_discount | round -%}
+  {%- endif -%}
+{%- endif -%}

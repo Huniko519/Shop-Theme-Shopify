@@ -1,0 +1,71 @@
+<form method="post" action="/cart/add" data-product-form>
+  {% if product.has_only_default_variant %}
+    <input
+      name="id"
+      value="{{ bold_selected_or_first_available_variant.id }}"
+      type="hidden">
+  {% else %}
+    {%
+      include 'product-options',
+      product: product,
+      selected_variant: selected_variant,
+      style: settings.product_option_style
+    %}
+  {% endif %}
+  <div class="product-form--atc">
+    <div class="product-form--atc-qty form-fields--qty" data-quantity-wrapper>
+      <div class="form-field form-field--qty-select visible">
+        <div class="form-field-select-wrapper">
+          <select
+            class="form-field-input form-field-select"
+            aria-label="{{ 'general.general.quantity' | t }}"
+            data-quantity-select
+          >
+            {% for i in (1..9) %}
+              <option {% if i == 1 %}selected {% endif %}value="{{ i }}">
+                {{ i }}
+              </option>
+            {% endfor %}
+            <option value="10+">
+              10+
+            </option>
+          </select>
+          <label class="form-field-title">
+            {{ 'general.general.quantity' | t }}
+          </label>
+          {% include 'icon-chevron-down-small' %}
+        </div>
+      </div>
+      <div class="form-field form-field--qty-input hidden">
+        <input
+          class="form-field-input form-field-number form-field-filled"
+          value="1"
+          name="quantity"
+          type="text"
+          pattern="\d*"
+          aria-label="{{ 'general.general.quantity' | t }}"
+          data-quantity-input
+        >
+        <label class="form-field-title">{{ 'general.general.quantity' | t }}</label>
+      </div>
+    </div>
+    
+    <button
+      class="product-form--atc-button {% unless selected_variant.available %}disabled{% endunless %}"
+      type="submit"
+      {% unless selected_variant.available %}disabled{% endunless %}
+      data-product-atc>
+      <span class="atc-button--text">
+        {% if selected_variant.available %}
+          {{ 'product.buttons.add_to_cart' | t }}
+        {% else %}
+          {{ 'product.buttons.sold_out' | t }}
+        {% endif %}
+      </span>
+      <span class="atc-button--icon">
+        {%- include 'icon-spinner' -%}
+      </span>
+    </button>
+    
+  </div>
+</form>

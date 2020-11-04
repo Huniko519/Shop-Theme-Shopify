@@ -1,0 +1,272 @@
+<script
+  type="application/json"
+  data-section-type="static-highlights-banners"
+  data-section-id="{{ section.id }}">
+</script>
+
+{% if section.settings.show_highlights_banner and section.blocks.size > 0 %}
+  <style>
+    .highlights-banners-container {
+      background-color: {{ section.settings.background_color }};
+    }
+
+    .highlights-banners:before {
+      background: linear-gradient( to right, {{ section.settings.background_color }} 10%, {{ section.settings.background_color | color_modify: 'alpha', 0 }} 100%);
+    }
+
+    .highlights-banners:after {
+      background: linear-gradient( to left, {{ section.settings.background_color }} 10%, {{ section.settings.background_color | color_modify: 'alpha', 0 }} 100%);
+    }
+
+    .highlights-banners-block {
+      color: {{ section.settings.color }};
+    }
+
+    .highlights-banners-icon {
+      color: {{ section.settings.icon_color }};
+    }
+  </style>
+
+  <div class="highlights-banners-container">
+    <div class="highlights-banners highlight-banners-count-{{ section.blocks.size }}">
+      {% for block in section.blocks %}
+        {% if block.settings.text != blank or block.settings.title != blank %}
+          {% if block.settings.link != blank %}
+            <a
+              class="highlights-banners-block"
+              href="{{ block.settings.link }}"
+              {{ block.shopify_attributes }}
+            >
+          {% else %}
+            <div
+              class="highlights-banners-block"
+              {{ block.shopify_attributes }}
+            >
+          {% endif %}
+            {% if block.settings.icon != 'none' or block.settings.image != blank %}
+              <div class="highlights-banners-icon">
+                {% if block.settings.image != blank %}
+                  <img
+                    class="highlights-banners-custom-icon"
+                    src="{{ block.settings.image | img_url }}"
+                    alt="{{ block.settings.image.alt | escape }}"
+                  >
+                {% else %}
+                  {% include 'icon-library', id: block.settings.icon %}
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <div class="highlights-banners-text">
+              {% if block.settings.title != blank %}
+                <h4 class="highlights-banners-heading">
+                  {{ block.settings.title | escape }}
+                </h4>
+              {% endif %}
+
+              {% if block.settings.text != blank %}
+                {{ block.settings.text | escape }}
+              {% endif %}
+            </div>
+          {% if block.settings.link != blank %}
+            </a>
+          {% else %}
+            </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Highlights banner",
+  "class": "highlights-banners--section",
+  "settings": [
+    {
+      "id": "show_highlights_banner",
+      "type": "checkbox",
+      "label": "Enable highlights banner",
+      "default": true
+    },
+    {
+      "id": "color",
+      "type": "color",
+      "label": "Text color",
+      "default": "#4d4d4d"
+    },
+    {
+      "id": "icon_color",
+      "type": "color",
+      "label": "Icon color",
+      "default": "#4d4d4d"
+    },
+    {
+      "id": "background_color",
+      "type": "color",
+      "label": "Background color",
+      "default": "#f8f8f8"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "highlight",
+      "name": "Highlight",
+      "settings": [
+        {
+          "id": "icon",
+          "type": "select",
+          "label": "Icon",
+          "options": [
+            {
+              "value": "none",
+              "label": "No icon"
+            },
+            {
+              "value": "icon-cell-phone",
+              "label": "Cell phone"
+            },
+            {
+              "value": "icon-chat",
+              "label": "Chat"
+            },
+            {
+              "value": "icon-chat-alternate",
+              "label": "Chat alternate"
+            },
+            {
+              "value": "icon-chat-solid",
+              "label": "Chat solid"
+            },
+            {
+              "value": "icon-credit-card",
+              "label": "Credit card"
+            },
+            {
+              "value": "icon-delivery",
+              "label": "Delivery"
+            },
+            {
+              "value": "icon-email",
+              "label": "Email"
+            },
+            {
+              "value": "icon-envelope",
+              "label": "Envelope"
+            },
+            {
+              "value": "icon-gift-card",
+              "label": "Gift card"
+            },
+            {
+              "value": "icon-heart",
+              "label": "Heart"
+            },
+            {
+              "value": "icon-label-tag",
+              "label": "Label tag"
+            },
+            {
+              "value": "icon-lock-alternate",
+              "label": "Lock"
+            },
+            {
+              "value": "icon-people",
+              "label": "People"
+            },
+            {
+              "value": "icon-people-alternate",
+              "label": "People alternate"
+            },
+            {
+              "value": "icon-pin",
+              "label": "Pin"
+            },
+            {
+              "value": "icon-pin-solid",
+              "label": "Pin solid"
+            },
+            {
+              "value": "icon-question-mark",
+              "label": "Question mark"
+            },
+            {
+              "value": "icon-smile",
+              "label": "Smile"
+            },
+            {
+              "value": "icon-store",
+              "label": "Store"
+            },
+            {
+              "value": "icon-transfer",
+              "label": "Transfer"
+            }
+          ],
+          "default": "none"
+        },
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Image",
+          "info": "50x50 recommended. Uploading an image will override any icon selected above."
+        },
+        {
+          "id": "title",
+          "type": "text",
+          "label": "Heading"
+        },
+        {
+          "id": "text",
+          "type": "textarea",
+          "label": "Text"
+        },
+        {
+          "id": "link",
+          "type": "url",
+          "label": "Link"
+        }
+      ],
+      "limit": 4
+    }
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "highlight",
+        "settings": {
+          "icon": "icon-delivery",
+          "title": "Free Shipping",
+          "text": "When you spend $100+"
+        }
+      },
+      {
+        "type": "highlight",
+        "settings": {
+          "icon": "icon-cell-phone",
+          "title": "Give Us A Call",
+          "text": "+1 (201) 555-5555"
+        }
+      },
+      {
+        "type": "highlight",
+        "settings": {
+          "icon": "icon-chat-alternate",
+          "title": "Chat With Us",
+          "text": "We offer 24-hour chat support"
+        }
+      },
+      {
+        "type": "highlight",
+        "settings": {
+          "icon": "icon-pin",
+          "title": "Locations",
+          "text": "Find a store near you"
+        }
+      }
+    ]
+  }
+}
+
+{% endschema %}

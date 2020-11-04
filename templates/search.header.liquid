@@ -1,0 +1,77 @@
+{%-
+  include 'search-sanitizer',
+  search_terms: search.terms
+-%}
+
+{%- paginate search.results by 50 -%}
+  {%- capture product_results -%}
+    {% assign product_count = 0 %}
+
+    {%- for item in search.results -%}
+      {% if product_count >= 5 %}
+        {% break %}
+      {% endif %}
+      {%- if item.object_type == 'product' -%}
+        {% assign on_sale = false %}
+        {% if item.compare_at_price > item.price %}
+          {% assign on_sale = true %}
+        {% endif %}
+        {%-
+          include 'consistent-savings',
+          variants: item.variants,
+          on_sale: on_sale
+        -%}
+        {%- capture product_image %}
+          {% if item.featured_image %}
+            {% assign image_alt = item.title | escape %}
+            {% if item.featured_image.alt != blank %}
+              {% assign image_alt = item.featured_image.alt | escape %}
+            {% endif %}
+            <img src="{{ item | img_url: '500x500' }}" alt="{{ image_alt }}">
+          {% else %}
+            {{ 'image' | placeholder_svg_tag: 'placeholder--image placeholder--content-image' }}
+          {% endif %}
+        {%- endcapture -%}
+        ,
+        {
+          "title": {{ item.title | highlight: sanitized_terms | json }},
+          "id": {{ item.id | json }},
+          "handle": {{ item.handle | json }},
+          "on_sale": {{ on_sale | json }},
+          "consistent_saved": {{ consistent_saved | json }},
+          "price": {
+            "price": {{ item.price | json }},
+            "price_min": {{ item.price_min | json }},
+            "price_max": {{ item.price_max | json }},
+            "compare_at_price": {{ item.compare_at_price | json }},
+            "compare_at_price_min": {{ item.compare_at_price_min | json }},
+            "compare_at_price_max": {{ item.compare_at_price_max | json }},
+            "compare_at_price_varies": {{ item.compare_at_price_varies | json }}
+          },
+          "image": {{ product_image | replace: '  ', '' | strip_newlines | json }},
+          "url": {{ item.url | json }}
+        }
+        {% assign product_count = product_count | plus: 1 %}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  {%- capture content_results -%}
+    {%- for item in search.results -%}
+      {% if item.object_type == 'article' or item.object_type == 'page' %}
+        ,
+        {
+          "title": {{ item.title | json }},
+          "url": {{ item.url | json }}
+        }
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+{%- endpaginate -%}
+{% layout none %}
+{
+  "content": [{{ content_results | strip_newlines | remove_first: ',' }}],
+  "products": [{{ product_results | strip_newlines | remove_first: ',' }}],
+  "terms": {{ search.terms | json }},
+  "sanitizedTerms": {{ sanitized_terms | json }}
+}

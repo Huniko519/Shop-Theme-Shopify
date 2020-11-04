@@ -1,0 +1,173 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-menu-list"
+  data-section-data>
+  {
+    "context": {
+      "see_more": {{ 'general.general.see_more' | t | json }},
+      "see_less": {{ 'general.general.see_less' | t | json }}
+    }
+  }
+</script>
+
+<section class="menulist--container">
+  {% if section.settings.title != blank %}
+    <h1 class="home-section--title">
+      {{ section.settings.title | escape }}
+    </h1>
+  {% endif %}
+
+  {% if section.blocks.size > 0 %}
+    <div class="home-section--content menulist--inner menulist--blocks-count-{{ section.blocks.size }}" >
+      {% for block in section.blocks %}
+        {% assign menu = block.settings.menu %}
+        {% assign onboard = false %}
+        {% assign image = false %}
+
+        {% if menu == '' or linklists[menu].links.size == 0 %}
+          {% assign onboard = true %}
+          {% assign menu_title = 'onboarding.menu_list.title' | t %}
+        {% else %}
+          {% assign menu_title = linklists[menu].title %}
+        {% endif %}
+
+        {% if block.settings.image %}
+          {% assign image = block.settings.image %}
+        {% elsif menu %}
+          {% for link in linklists[menu].links %}
+            {% if link.object.image %}
+              {% assign image = link.object.image %}
+              {% break %}
+            {% elsif link.object.featured_image %}
+              {% assign image = link.object.featured_image %}
+            {% elsif collections[link.object.handle].products.first.featured_image %}
+              {% assign image = collections[link.object.handle].products.first.featured_image %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        <article class="menulist--item menulist--item-{{ forloop.index }}" {{ block.shopify_attributes }}>
+          <div class="menulist--item--inner">
+            <div class="menulist--image">
+              {% if image %}
+                <img
+                  src="{{ image | img_url: '180x180', crop: 'center' }}"
+                  {% if image.width >= 360 %}
+                    srcset="{{ image | img_url: '360x360', crop: 'center' }} 2x"
+                 {% endif %}
+                  alt="{{ image.alt | escape }}">
+              {% else %}
+                {{ 'image' | placeholder_svg_tag: 'placeholder--image' }}
+              {% endif %}
+            </div>
+
+            <div class="menulist--content">
+              <h2 class="menulist--title" data-accordion-trigger>
+                {% if onboard %}
+                  {{ 'onboarding.menu_list.title' | t }}
+                {% else %}
+                  {{ linklists[menu].title }}
+                {% endif %}
+
+                <span class="menulist-title-icon accordion--icon">
+                  {% include 'icon-chevron-down' %}
+                </span>
+              </h2>
+
+              <ul class="menulist--menu accordion--content" data-accordion-content>
+                {% for link in linklists[menu].links %}
+                  <li
+                    class="menulist--menu-item {% if forloop.index > 6 %}menulist--menu-item-hidden{% endif %}"
+                    {% if forloop.index > 6 %}data-hidden-default{% endif %}>
+                    <a class="menulist--menu-link" href="{{ link.url }}">
+                      {{ link.title }}
+                    </a>
+                  </li>
+                {% else %}
+                  {% for i in (1..6) %}
+                    <li class="menulist--menu-item">
+                      <a class="menulist--menu-link" href="#">
+                        {{ 'onboarding.menu_list.link_text' | t }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                {% endfor %}
+
+                {% if linklists[menu].links.size > 6 %}
+                  <li class="menulist--menu-item menulist--menu-item-trigger">
+                    <a class="menulist--menu-link" href="#" data-menulist-toggle="false">
+                      {{ 'general.general.see_more' | t }}
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% schema %}
+{
+  "name": "Menu list",
+  "class": "menulist--section",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Menu list"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Menu",
+      "settings": [
+        {
+          "id": "menu",
+          "type": "link_list",
+          "label": "Menu"
+        },
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "Image",
+          "info": "360 x 360px .jpg recommended"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Menu list",
+      "category": "Text",
+      "blocks": [
+        {
+          "type": "menu"
+        },
+        {
+          "type": "menu"
+        },
+        {
+          "type": "menu"
+        },
+        {
+          "type": "menu"
+        },
+        {
+          "type": "menu"
+        },
+        {
+          "type": "menu"
+        }
+      ]
+    }
+  ]
+}
+
+{% endschema %}

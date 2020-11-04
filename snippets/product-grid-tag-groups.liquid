@@ -1,0 +1,62 @@
+{%- capture tag_icon -%}
+  <span class="filter-icon--checkbox">
+    {%- include 'icon-checkbox' -%}
+  </span>
+{%- endcapture -%}
+{% for cat_item in cat_array %}
+  {% assign tag_count = 0 %}
+  <div class="filter-header">
+    <h3 class="productgrid--sidebar-title--small">
+      {{ cat_item | replace: '-', ' '}}
+    </h3>
+    <a class="filter-clear" href="" style="display:none;">clear</a>
+  </div>
+  <ul class="productgrid--sidebar-item filter-group">
+    {% for tag in collection.all_tags %}
+      {% assign cat = tag | split: '_' | first %}
+      {% if cat != tag and cat_item == cat %}
+        {% assign tag_count = tag_count | plus: 1 %}
+        {%- capture tag_text -%}
+          {{- tag_icon -}}
+          <span class="filter-text">
+            {{ tag | remove_first: cat | remove_first: '_' }}
+          </span>
+        {%- endcapture -%}
+        {% assign filter_class = 'filter-item' %}    
+        {%- if current_tags contains tag -%}
+          {% assign filter_class = filter_class | append: ' filter-item--active' %}
+        {%- else -%}          
+          {% include 'has_product' %}
+          {% if thereisproduct == true  %}
+          	{% assign filter_class = filter_class | append: ' filter-item--inactive' %}
+    	  {% else %}
+    		{% assign filter_class = filter_class | append: ' filter-item--hidden' %}
+          {% endif %}
+        {%- endif -%}
+        {%- if tag_count > tag_limit -%}
+          {% assign filter_class = filter_class | append: ' filter-item--hidden' %}
+        {%- endif -%}
+        <li
+          class="{{ filter_class }}"
+          data-tag-advanced
+          data-group="{{ cat_item }}"
+          data-handle="{{ tag | handle }}"
+          {% if tag_count > tag_limit %}data-hidden-default{% endif %}
+        >
+          {% if current_tags contains tag %}
+            {{ tag_text | link_to_remove_tag: tag }}
+          {% else %}
+            {{ tag_text | link_to_add_tag: tag }}
+          {% endif %}
+        </li>
+      {% endif %}
+    {% endfor %}
+    {% if tag_count > tag_limit %}
+      <li class="filter-item">
+        <a class="filter-text--link" href="#" data-filter-toggle="false">
+          {{ 'general.general.see_more' | t }}
+        </a>
+      </li>
+    {% endif %}
+  </ul>
+{% endfor %}

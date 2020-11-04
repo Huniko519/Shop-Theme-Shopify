@@ -1,0 +1,20 @@
+{%- capture google_fonts -%}
+  {% assign font_settings = 'font_body|font_heading' | split: '|' %}
+  {% assign request_string = '' %}
+  {% assign font_count = 0 %}
+  {%- for setting in font_settings -%}
+    {% assign font_setting = settings[setting] %}
+    {% if font_setting contains 'Google' %}
+      {% assign font_parts = font_setting | split: '_' %}
+      {% assign font_count = font_count | plus: 1 %}
+      {% assign font_segment = font_parts[1] | append: ':' | append: font_parts[2] %}
+      {%- unless request_string contains font_segment -%}
+        {% assign request_string = request_string | append: '|' | append: font_segment %}
+      {%- endunless -%}
+    {% endif %}
+  {%- endfor -%}
+  {%- if font_count > 0 -%}
+    {{ '//fonts.googleapis.com/css?family=' | append: request_string | remove_first: "|" | stylesheet_tag }}
+  {%- endif -%}
+{%- endcapture -%}
+{{ google_fonts | strip_newlines }}

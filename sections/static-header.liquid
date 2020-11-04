@@ -1,0 +1,633 @@
+{%- capture flydown_chevron -%}
+  {% include 'icon-chevron-down-small' %}
+{%- endcapture -%}
+
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="static-header"
+  data-section-data>
+  {
+    "settings": {
+      "sticky_header": {{ section.settings.sticky_header | json }},
+      "live_search": {
+        "enable": {{ section.settings.enable_live_search | json }},
+        "enable_images": {{ section.settings.enable_live_search_images | json }},
+        "enable_content": {{ section.settings.enable_live_search_articles_pages | json }},
+        "money_format": {{ shop.money_format | strip_html | json }},
+        "context": {
+          "view_all_results": {{ 'search.general.view_all_results' | t | json }},
+          "view_all_products": {{ 'search.general.view_all_products' | t | json }},
+          "chevron": {{ flydown_chevron | replace: '  ', '' | strip_newlines | json }},
+          "content_results": {
+            "title": {{ 'search.general.pages_and_posts_title' | t | json }},
+            "no_results": {{ 'search.general.pages_and_posts_no_results' | t | json }}
+          },
+          "no_results_products": {
+            "title": {{ 'search.general.no_results_products_title' | t: terms: '*terms*' | json }},
+            "message": {{ 'search.general.no_results_products_message' | t | json }}
+          }
+        }
+      }
+    },
+    "currency": {
+      "enable": {{ settings.enable_currency_converter | default: false }},
+      "shop_currency": {{ shop.currency | json }},
+      "default_currency": {{ settings.currency_converter_default | default: shop.currency | json }},
+      "display_format": {{ settings.currency_display_format | json }},
+      "money_format": {{ shop[settings.currency_display_format] | strip_html | json }},
+      "money_format_no_currency": {{ shop.money_format | strip_html | json }},
+      "money_format_currency": {{ shop.money_with_currency_format | strip_html | json }}
+    }
+  }
+</script>
+
+<style>
+  .announcement-bar {
+    color: {{ section.settings.announcement_color }};
+    background: {{ section.settings.announcement_background }};
+  }
+</style>
+
+{% if section.settings.announcement_text != blank or section.settings.announcement_text_mobile != blank %}
+  {% if section.settings.announcement_link != blank %}
+    <a
+      class="
+        announcement-bar
+        {% if section.settings.announcement_text == blank and section.settings.announcement_text_mobile != blank %}
+          only-mobile
+        {% endif %}
+      "
+      href="{{ section.settings.announcement_link }}"
+    >
+  {% else %}
+    <div
+      class="
+        announcement-bar
+        {% if section.settings.announcement_text == blank and section.settings.announcement_text_mobile != blank %}
+          only-mobile
+        {% endif %}
+      "
+    >
+  {% endif %}
+
+  {% if section.settings.announcement_text != blank %}
+    <div class="announcement-bar-text">
+      {{ section.settings.announcement_text | escape }}
+    </div>
+  {% endif %}
+
+  <div class="announcement-bar-text-mobile">
+    {% if section.settings.announcement_text_mobile != blank %}
+      {{ section.settings.announcement_text_mobile | escape }}
+    {% else %}
+      {{ section.settings.announcement_text | escape }}
+    {% endif %}
+  </div>
+
+  {% if section.settings.announcement_link != blank %}
+    </a>
+  {% else %}
+    </div>
+  {% endif %}
+{% endif %}
+
+<section
+  class="site-header"
+  data-site-header-main
+  {% if section.settings.sticky_header %}data-site-header-sticky{% endif %}>
+  <div class="site-header-menu-toggle">
+    <a class="site-header-menu-toggle--button" href="#" data-menu-toggle>
+      <span class="toggle-icon--bar toggle-icon--bar-top"></span>
+      <span class="toggle-icon--bar toggle-icon--bar-middle"></span>
+      <span class="toggle-icon--bar toggle-icon--bar-bottom"></span>
+      <span class="show-for-sr">{{ 'general.accessibility.menu' | t }}</span>
+    </a>
+  </div>
+
+  <div
+    class="
+      site-header-main
+      {% if section.settings.small_promo_text != empty %}
+        small-promo-enabled
+      {% endif %}
+    "
+  >
+    <div class="site-header-logo">
+      <a
+        class="site-logo"
+        href="/">
+        {% if section.settings.logo %}
+          {% assign logo_alt = section.settings.logo.alt | escape %}
+          {% if logo_alt == '' %}
+            {% assign logo_alt = shop.name | escape | strip %}
+          {% endif %}
+          {% assign logo_height = section.settings.logo_height | default: 100 %}
+          {% assign logo_width = section.settings.logo_width | default: 200 %}
+          {% assign logo_width_retina = logo_width | times: 2 %}
+          {% assign logo_size = logo_width | prepend: 'x' %}
+          <img
+            class="site-logo-image"
+            src="{{ section.settings.logo | img_url: logo_size }}"
+            style="max-width: {{ logo_width }}px; max-height: {{ logo_height }}px;"
+            {% if section.settings.logo.width >= logo_width_retina %}
+              srcset="{{ section.settings.logo | img_url: logo_size, scale: 2 }} 2x"
+            {% endif %}
+            alt="{{ logo_alt }}">
+        {% else %}
+          <span class="site-logo-text">
+            {{ shop.name }}
+          </span>
+        {% endif %}
+      </a>
+    </div>
+
+    {%
+      include 'header-search-form',
+      quick_links: linklists[section.settings.quick_links],
+      enable_live_search: section.settings.enable_live_search,
+      enable_images: section.settings.enable_live_search_images,
+      enable_content: section.settings.enable_live_search_articles_pages
+    %}
+
+    {% if section.settings.small_promo_text != blank or section.settings.small_promo_heading != blank %}
+      {% if section.settings.small_promo_link != blank %}
+        <a class="small-promo" href="{{ section.settings.small_promo_link }}">
+      {% else %}
+        <div class="small-promo">
+      {% endif %}
+
+      {% if section.settings.small_promo_icon != 'none' or section.settings.image != blank %}
+        <div
+          class="
+            small-promo-icon
+            {% if section.settings.image == blank %}
+              small-promo-icon--svg
+            {% else %}
+              small-promo-icon--custom
+            {% endif %}
+          "
+        >
+          {% if section.settings.image == blank %}
+            {% include 'icon-library', id: section.settings.small_promo_icon %}
+          {% else %}
+            <img
+              class="small-promo-custom-icon"
+              src="{{ section.settings.image | img_url }}"
+              alt="{{ section.settings.image.alt | escape }}"
+            >
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <span class="small-promo-text">
+        {% if section.settings.small_promo_heading != blank %}
+          <h4 class="small-promo-heading">
+            {{ section.settings.small_promo_heading | escape }}
+          </h4>
+        {% endif %}
+
+        {% if section.settings.small_promo_text != blank %}
+          {{ section.settings.small_promo_text | escape }}
+        {% endif %}
+      </span>
+
+      <span class="small-promo-text-mobile">
+        {% if section.settings.small_promo_heading != blank %}
+          <h4 class="small-promo-heading">
+            {{ section.settings.small_promo_heading | escape }}
+          </h4>
+        {% endif %}
+
+        {% if section.settings.small_promo_text_mobile != blank %}
+          {{ section.settings.small_promo_text_mobile | escape }}
+        {% elsif section.settings.small_promo_text != blank %}
+          {{ section.settings.small_promo_text | escape }}
+        {% endif %}
+      </span>
+
+      {% if section.settings.small_promo_link != blank %}
+        </a>
+      {% else %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="site-header-cart">
+    <a class="site-header-cart--button" href="/cart">
+      <span
+        class="site-header-cart--count {% if cart.item_count > 0 %}visible{% endif %}"
+        data-header-cart-count="{% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}">
+      </span>
+
+      {% include 'icon-cart' %}
+      <span class="show-for-sr">{{ 'general.accessibility.cart' | t }}</span>
+    </a>
+  </div>
+</section>
+
+{%- capture site_navigation_classes -%}
+  site-navigation-wrapper
+  {% if shop.customer_accounts_enabled or settings.enable_currency_converter %}
+    site-navigation--has-actions
+  {% endif %}
+{%- endcapture -%}
+<div class="{{ site_navigation_classes }}" data-site-navigation id="site-header-nav">
+  <nav
+    class="site-navigation"
+    aria-label="{{ 'general.accessibility.nav_main' | t }}"
+  >
+    {%
+      include 'navmenu',
+      menu: section.settings.menu,
+      blocks: section.blocks,
+      depth: 1,
+      max_depth: 3,
+      submenu_arrows: true,
+      is_site_nav: true,
+      has_triggers: true,
+    %}
+
+    {% include 'site-header-actions' %}
+  </nav>
+</div>
+
+{%
+  include 'site-mobile-nav',
+  blocks: section.blocks,
+%}
+
+{% schema %}
+{
+  "name": "Header",
+  "class": "site-header-wrapper",
+  "settings": [
+    {
+      "id": "sticky_header",
+      "type": "checkbox",
+      "label": "Enable sticky header",
+      "default": true
+    },
+    {
+      "id": "logo",
+      "type": "image_picker",
+      "label": "Logo image",
+      "info": "200 x 80px .png recommended"
+    },
+    {
+      "id": "logo_height",
+      "type": "range",
+      "label": "Logo image max-height",
+      "min": 40,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 100
+    },
+    {
+      "id": "logo_width",
+      "type": "range",
+      "label": "Logo image max-width",
+      "min": 150,
+      "max": 250,
+      "step": 1,
+      "unit": "px",
+      "default": 200,
+      "info": "When adjusting the max-width, your logo image may disappear momentarily while a new logo image is generated"
+    },
+    {
+      "type": "header",
+      "content": "Search"
+    },
+    {
+      "id": "enable_live_search",
+      "type": "checkbox",
+      "label": "Enable live search",
+      "default": true
+    },
+    {
+      "id": "enable_live_search_images",
+      "type": "checkbox",
+      "label": "Show product images in live search results",
+      "default": true
+    },
+    {
+      "id": "enable_live_search_articles_pages",
+      "type": "checkbox",
+      "label": "Show blog posts and pages in live search results",
+      "default": true
+    },
+    {
+      "id": "quick_links",
+      "type": "link_list",
+      "label": "Quick links",
+      "info": "Displays menu links below the search box the first time it is opened. This menu won't show dropdown items."
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "id": "menu",
+      "type": "link_list",
+      "label": "Main menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "header",
+      "content": "Announcement Bar"
+    },
+    {
+      "id": "announcement_text",
+      "type": "textarea",
+      "label": "Text"
+    },
+    {
+      "id": "announcement_text_mobile",
+      "type": "textarea",
+      "label": "Text (mobile)",
+      "info": "Use this option if you want to display alternate text in mobile. Recommended for shortening announcement text to make suitable for mobile."
+    },
+    {
+      "id": "announcement_link",
+      "type": "url",
+      "label": "Link"
+    },
+    {
+      "id": "announcement_color",
+      "type": "color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "id": "announcement_background",
+      "type": "color",
+      "label": "Background color",
+      "default": "#006C82"
+    },
+    {
+      "type": "header",
+      "content": "Small Promo"
+    },
+    {
+      "id": "small_promo_heading",
+      "type": "text",
+      "label": "Heading"
+    },
+    {
+      "id": "small_promo_text",
+      "type": "textarea",
+      "label": "Text"
+    },
+    {
+      "id": "small_promo_text_mobile",
+      "type": "textarea",
+      "label": "Text (mobile)",
+      "info": "Use this option if you want to display alternate text in mobile. Recommended for shortening promo text to make suitable for mobile."
+    },
+    {
+      "id": "small_promo_link",
+      "type": "url",
+      "label": "Link"
+    },
+    {
+      "type": "select",
+      "id": "small_promo_icon",
+      "label": "Icon",
+      "options": [
+        {
+          "value": "none",
+          "label": "No icon"
+        },
+        {
+          "value": "icon-cell-phone",
+          "label": "Cell phone"
+        },
+        {
+          "value": "icon-chat",
+          "label": "Chat"
+        },
+        {
+          "value": "icon-chat-alternate",
+          "label": "Chat alternate"
+        },
+        {
+          "value": "icon-chat-solid",
+          "label": "Chat solid"
+        },
+        {
+          "value": "icon-credit-card",
+          "label": "Credit card"
+        },
+        {
+          "value": "icon-delivery",
+          "label": "Delivery"
+        },
+        {
+          "value": "icon-email",
+          "label": "Email"
+        },
+        {
+          "value": "icon-envelope",
+          "label": "Envelope"
+        },
+        {
+          "value": "icon-gift-card",
+          "label": "Gift card"
+        },
+        {
+          "value": "icon-heart",
+          "label": "Heart"
+        },
+        {
+          "value": "icon-label-tag",
+          "label": "Label tag"
+        },
+        {
+          "value": "icon-lock-alternate",
+          "label": "Lock"
+        },
+        {
+          "value": "icon-people",
+          "label": "People"
+        },
+        {
+          "value": "icon-people-alternate",
+          "label": "People alternate"
+        },
+        {
+          "value": "icon-pin",
+          "label": "Pin"
+        },
+        {
+          "value": "icon-pin-solid",
+          "label": "Pin solid"
+        },
+        {
+          "value": "icon-question-mark",
+          "label": "Question mark"
+        },
+        {
+          "value": "icon-smile",
+          "label": "Smile"
+        },
+        {
+          "value": "icon-store",
+          "label": "Store"
+        },
+        {
+          "value": "icon-transfer",
+          "label": "Transfer"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "id": "image",
+      "type": "image_picker",
+      "label": "Image",
+      "info": "50x50 recommended. Uploading an image will override any icon selected above."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "meganav",
+      "name": "Menu",
+      "settings": [
+        {
+          "id": "menu",
+          "type": "link_list",
+          "label": "Menu"
+        }
+      ],
+      "limit": 10
+    }
+  ],
+  "blocks": [
+    {
+      "type": "meganav_images",
+      "name": "Meganav",
+      "settings": [
+        {
+          "id": "meganav_trigger",
+          "type": "text",
+          "label": "Mega navigation trigger",
+          "info": "Add the title of the menu that you want to turn into a mega-nav."
+        },
+        {
+          "type": "header",
+          "content": "Custom Image 1"
+        },
+        {
+          "id": "image_1",
+          "type": "image_picker",
+          "label": "Image"
+        },
+        {
+          "id": "text_1",
+          "type": "text",
+          "label": "Text"
+        },
+        {
+          "id": "link_1",
+          "type": "url",
+          "label": "Link"
+        },
+        {
+          "id": "position_1",
+          "type": "select",
+          "label": "Position",
+          "options": [
+            {
+              "value": "first",
+              "label": "First column"
+            },
+            {
+              "value": "last",
+              "label": "Last column"
+            }
+          ],
+          "default": "first"
+        },
+        {
+          "id": "size_1",
+          "type": "select",
+          "label": "Size",
+          "options": [
+            {
+              "value": "small",
+              "label": "Small"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "large",
+              "label": "Large"
+            }
+          ],
+          "default": "small"
+        },
+        {
+          "type": "header",
+          "content": "Custom Image 2"
+        },
+        {
+          "id": "image_2",
+          "type": "image_picker",
+          "label": "Image"
+        },
+        {
+          "id": "text_2",
+          "type": "text",
+          "label": "Text"
+        },
+        {
+          "id": "link_2",
+          "type": "url",
+          "label": "Link"
+        },
+        {
+          "id": "position_2",
+          "type": "select",
+          "label": "Position",
+          "options": [
+            {
+              "value": "first",
+              "label": "First column"
+            },
+            {
+              "value": "last",
+              "label": "Last column"
+            }
+          ],
+          "default": "first"
+        },
+        {
+          "id": "size_2",
+          "type": "select",
+          "label": "Size",
+          "options": [
+            {
+              "value": "small",
+              "label": "Small"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "large",
+              "label": "Large"
+            }
+          ],
+          "default": "small"
+        }
+      ]
+    }
+  ]
+}
+
+{% endschema %}

@@ -1,0 +1,183 @@
+<section
+  class="account-page account-page-order"
+  data-template-account>
+  <header class="account-page-masthead">
+    <h1 class="account-page-title">
+      {{ 'customers.order.title' | t: order_number: order.name }}
+    </h1>
+  </header>
+  <article class="account-page--two-column account-page-content">
+    <div class="account-page--column-large">
+      <h2 class="account-page-subtitle">
+        {{ 'customers.order.subtitle' | t }}
+      </h2>
+      <table class="account-order">
+        <thead>
+          <tr>
+            <th class="order-item-image">
+              {{ 'customers.order.item' | t }}
+            </th>
+            <th class="order-item-title"></th>
+            <th class="order-item-price">
+              {{ 'customers.order.price' | t }}
+            </th>
+            <th class="order-item-quantity">
+              {{ 'customers.order.quantity' | t }}
+            </th>
+            <th class="order-item-total">
+              {{ 'customers.order.total' | t }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for line_item in order.line_items %}
+            <tr class="{% if order.cancelled %}cancelled_order{% endif %}">
+              <td class="order-item-image">
+                <a href="{{ line_item.product.url }}">
+                  {%- if line_item.image -%}
+                    <img
+                      src="{{ line_item | img_url: '50x' }}"
+                      alt="{{ line_item.title | escape }}">
+                  {%- else -%}
+                    {{ 'product-1' | placeholder_svg_tag: 'placeholder--image order-item-placeholder' }}
+                  {%- endif -%}
+                </a>
+              </td>
+              <td class="order-item-title">
+                <a href="{{ line_item.url }}">
+                  {%- if line_item.gift_card -%}
+                    {{ line_item.title }}
+                  {%- else -%}
+                    {{ line_item.product.title }}
+                  {%- endif -%}
+                </a>
+                {%- unless line_item.variant.title == 'Default Title' or line_item.gift_card -%}
+                  <span class="order-item-options">
+                    {{ line_item.variant.title }}
+                  </span>
+                {%- endunless -%}
+              </td>
+              <td class="order-item-price">
+                <span class="money">
+                  {{ line_item.price | money }}
+                </span>
+              </td>
+              <td class="order-item-quantity">
+                {{ line_item.quantity }}
+              </td>
+              <td class="order-item-total">
+                <span class="money">
+                  {{ line_item.line_price | money }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          {% for discount in order.discounts %}
+            <tr class="order-footer-item">
+              <td class="order-footer-label" colspan="4">
+                {{ 'customers.order.discount' | t: code: discount.code }}
+              </td>
+              <td class="order-footer-value">
+                <span class="money">
+                  {{ discount.savings | money }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+          <tr class="order-footer-item">
+            <td class="order-footer-label" colspan="4">
+              {{ 'customers.order.subtotal' | t }}
+            </td>
+            <td class="order-footer-value">
+              <span class="money">
+                {{ order.subtotal_price | money }}
+              </span>
+            </td>
+          </tr>
+
+          {% for shipping_method in order.shipping_methods %}
+            <tr class="order-footer-item">
+              <td class="order-footer-label" colspan="4">
+                {{ 'customers.order.shipping' | t: shipping_method: shipping_method.title }}
+              </td>
+              <td class="order-footer-value">
+                <span class="money">
+                  {{ shipping_method.price | money }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+          {% for tax_line in order.tax_lines %}
+            <tr class="order-footer-item">
+              <td class="order-footer-label" colspan="4">
+                {% assign tax_rate = tax_line.rate | times: 100 %}
+                {{ 'customers.order.tax' | t: title: tax_line.title, rate: tax_rate }}
+              </td>
+              <td class="order-footer-value">
+                <span class="money">
+                  {{ tax_line.price | money }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+          <tr class="order-footer-item">
+            <td class="order-footer-label" colspan="4">
+              {{ 'customers.order.total' | t }}
+            </td>
+            <td class="order-footer-value">
+              <span class="money">
+                {{ order.total_price | money }}
+              </span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      {% if order.note %}
+        <h2 class="account-page-subtitle">
+          {{ 'customers.order.order_notes' | t }}
+        </h2>
+        <div class="account-order-note">
+          <p>{{ order.note }}</p>
+        </div>
+      {% endif %}
+      {% if order.attributes.size > 0 %}
+        <h2 class="account-page-subtitle">
+          {{ 'customers.order.additional_notes' | t }}
+        </h2>
+        <ul class="account-order-attributes">
+          {% for attribute in order.attributes %}
+            <li>
+              <span class="account-order-attribute-title">
+                {{ attribute | first }}:
+              </span>
+              <span class="account-order-attribute-content">
+                {{ attribute | last }}
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+    <div class="account-page--column-small">
+      {% if order.shipping_address %}
+        <h2 class="account-page-subtitle">
+          {{ 'customers.order.shipping_address' | t }}
+        </h2>
+        {%
+          include 'account-address-list',
+          address: order.shipping_address
+        %}
+      {% endif %}
+
+      <h2 class="account-page-subtitle">
+        {{ 'customers.order.billing_address' | t }}
+      </h2>
+      {%
+        include 'account-address-list',
+        address: order.billing_address
+      %}
+    </div>
+  </article>
+</section>

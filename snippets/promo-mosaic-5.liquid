@@ -1,0 +1,37 @@
+<div class="promo-mosaic--row">
+  <div class="promo-mosaic--column promo-mosaic--column-wide">
+    {%
+      include 'promo-block',
+      block: section.blocks[0],
+      text_alignment: text_alignment,
+      compress_blocks: compress_blocks
+    %}
+    {%
+      include 'promo-block',
+      block: section.blocks[1],
+      text_alignment: text_alignment,
+      compress_blocks: compress_blocks
+    %}
+  </div>
+
+  <div class="promo-mosaic--column promo-mosaic--column-narrow">
+    {%
+      include 'promo-block',
+      block: section.blocks[2],
+      text_alignment: text_alignment,
+      compress_blocks: compress_blocks
+    %}
+    {%
+      include 'promo-block',
+      block: section.blocks[3],
+      text_alignment: text_alignment,
+      compress_blocks: compress_blocks
+    %}
+    {%
+      include 'promo-block',
+      block: section.blocks[4],
+      text_alignment: text_alignment,
+      compress_blocks: compress_blocks
+    %}
+  </div>
+</div>

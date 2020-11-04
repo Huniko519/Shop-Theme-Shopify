@@ -1,0 +1,72 @@
+{% assign onboarding = true %}
+
+{% if section.settings.access_token != blank %}
+  {% assign onboarding = false %}
+{% endif %}
+
+{% assign photo_count = 5 %}
+
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-instagram-feed"
+  data-section-data>
+  {
+    "onboarding": {{ onboarding | json }},
+    "photo_count": {{ photo_count }},
+    "access_token": {{ section.settings.access_token | escape | json }}
+  }
+</script>
+
+<section class="instagram--container">
+  {% if section.settings.title != blank %}
+    <h1 class="home-section--title">
+      {{ section.settings.title | escape }}
+    </h1>
+  {% endif %}
+
+  <div
+    class="home-section--content instagram--inner"
+    data-instagram-content
+  >
+    {% for i in (1..photo_count) %}
+      <figure
+        class="instagram--photo"
+        data-instagram-photo
+        data-instagram-photo-placeholder>
+        {% if onboarding %}
+          {{ 'image' | placeholder_svg_tag: 'placeholder--image' }}
+        {% else %}
+          {{ 'image' | placeholder_svg_tag: 'placeholder--image placeholder--content-image' }}
+        {% endif %}
+      </figure>
+    {% endfor %}
+  </div>
+</section>
+{% schema %}
+{
+  "name": "Instagram feed",
+  "class": "instagram--section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Instagram feed"
+    },
+    {
+      "type": "text",
+      "id": "access_token",
+      "label": "Instagram access token",
+      "info": "[Instagram access token generator](http://instagram.pixelunion.net/)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Instagram feed",
+      "category": "Social media"
+    }
+  ]
+}
+
+{% endschema %}

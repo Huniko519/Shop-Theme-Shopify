@@ -1,0 +1,199 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-rich-text"
+></script>
+
+<section
+  class="
+    rich-text--container
+    rich-text-{{ section.settings.width }}
+  "
+>
+  {% for block in section.blocks %}
+    <div
+      class="
+        rich-text-block
+        rich-text-alignment-{{ block.settings.text_alignment }}
+      "
+    >
+      {% if block.type == 'text' %}
+        {% if block.settings.title %}
+          <h2
+            class="
+              rich-text-heading
+              rich-text-heading-{{ block.settings.heading_size }}
+            "
+          >
+            {{ block.settings.title | escape }}
+          </h2>
+        {% endif %}
+
+        {% if block.settings.text != blank %}
+          <div class="rich-text-content rte">
+            {{ block.settings.text }}
+          </div>
+        {% endif %}
+      {% elsif block.type == 'page' %}
+        {% if block.settings.page %}
+          {% if block.settings.show_heading %}
+            <h2
+              class="
+                rich-text-heading
+                rich-text-heading-{{ block.settings.heading_size }}
+              "
+            >
+              {{ pages[block.settings.page].title | escape }}
+            </h2>
+          {% endif %}
+
+          <div class="rich-text-content rte">
+            {{ pages[block.settings.page].content }}
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  {% endfor %}
+</section>
+
+{% schema %}
+{
+  "name": "Rich Text",
+  "class": "rich-text--section",
+  "max_blocks": 2,
+  "settings": [
+    {
+      "id": "width",
+      "type": "select",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "regular",
+          "label": "Regular"
+        },
+        {
+          "value": "wide",
+          "label": "Wide"
+        },
+        {
+          "value": "full-width",
+          "label": "Full width"
+        }
+      ],
+      "default": "regular"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Rich text"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Use this section to welcome customers to your store, say a bit about your brand, or share news and seasonal promotions.</p>"
+        },
+        {
+          "id": "heading_size",
+          "type": "select",
+          "label": "Heading size",
+          "options": [
+            {
+              "value": "small",
+              "label": "Small"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "large",
+              "label": "Large"
+            }
+          ],
+          "default": "medium"
+        },
+        {
+          "id": "text_alignment",
+          "type": "select",
+          "label": "Text alignment",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "default": "left"
+        }
+      ]
+    },
+    {
+      "type": "page",
+      "name": "Page",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_heading",
+          "label": "Show heading"
+        },
+        {
+          "id": "heading_size",
+          "type": "select",
+          "label": "Heading size",
+          "options": [
+            {
+              "value": "small",
+              "label": "Small"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "large",
+              "label": "Large"
+            }
+          ],
+          "default": "medium"
+        },
+        {
+          "type": "page",
+          "id": "page",
+          "label": "Page"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rich text",
+      "category": "Text",
+      "blocks": [
+        {
+          "type": "text",
+          "settings": {
+            "title": "Rich text",
+            "text": "<p>Use this section to welcome customers to your store, say a bit about your brand, or share news and seasonal promotions.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+
+{% endschema %}

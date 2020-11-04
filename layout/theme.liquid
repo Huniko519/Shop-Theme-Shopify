@@ -1,0 +1,98 @@
+<!doctype html>
+<!--[if IE]><html class="no-js no-touch ie9" lang="{{ shop.locale }}"><![endif]-->
+<!--[if !IE]><!--><html class="no-js no-touch" lang="{{ shop.locale }}"><!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="google-site-verification" content="VrXr4LfpxxhowI4R-8eUPtb8EpwpaAoaGYV7ktLCavI" />
+    <meta name="msvalidate.01" content="324A0B8E46BAAF2E1E52F0F08EF05F2E" />
+    <title>
+      {{- page_title -}}
+      {%- if current_tags -%}
+        {%- include 'advanced-tag-loop' -%}
+        {% assign title_tags = '' %}
+        {% assign meta_tags = current_tags | join: ', ' %}
+        {%- for tag in current_tags -%}
+          {% assign is_advanced_tag = false %}
+          {% assign cat = tag | split: '_' | first %}
+          {%- unless cat == tag -%}
+            {%- if cat_array contains cat -%}
+              {% assign is_advanced_tag = true %}
+              {% assign title_tags = title_tags | append: ', ' | append: tag | replace_first: '_', ': ' %}
+            {%- endif -%}
+          {%- endunless -%}
+          {%- unless is_advanced_tag -%}
+            {% assign title_tags = title_tags | append: ', ' | append: tag %}
+          {%- endunless -%}
+        {%- endfor -%}
+        {{ 'general.title.tags' | t: tags: title_tags | remove_first: ', ' }}
+      {%- endif -%}
+      {%- if current_page != 1 -%}
+        {{- 'general.title.page' | t: page: current_page -}}
+      {%- endif -%}
+      {%- unless page_title contains shop.name -%}
+        {{- 'general.title.shop' | t: shop: shop.name -}}
+      {%- endunless -%}
+    </title>
+    {% if page_description != blank %}
+      <meta name="description" content="{{ page_description | escape }}">
+    {% endif %}
+    {% include 'favicon' %}
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <meta name="viewport" content="width=device-width">
+    {% include 'social-meta-tags' %}
+    {{ content_for_header }}
+{%- include 'bold-common' -%}
+{%- include 'bold-product' with product, hide_action: 'header' -%}
+    <script async>
+      document.documentElement.className=document.documentElement.className.replace(/\bno-js\b/,'js');
+      if(window.Shopify&&window.Shopify.designMode)document.documentElement.className+=' in-theme-editor';
+      if(('ontouchstart' in window)||window.DocumentTouch&&document instanceof DocumentTouch)document.documentElement.className=document.documentElement.className.replace(/\bno-touch\b/,'has-touch');
+    </script>
+    {% include 'fonts' %}
+    {{ 'theme.scss.css' | asset_url | stylesheet_tag }}
+  {% comment %}{% section 'filter-menu-settings' %}{% endcomment %}
+    {% if template contains 'product' %}
+	{{ shop.metafields.loox["global_html_head"] }}
+    {% endif %}
+    <!-- Lazy Loading --><script src="{{ "lazysizes.min.js" | asset_url }}" async></script> <style>.lazyload,.lazyloading{opacity:0}.lazyloaded{opacity:1;transition:opacity .3s}</style>
+</head>
+  <body>
+    {% section 'static-header' %}
+    <main class="site-main">
+      {% if template == 'index' %}
+        {% section 'static-slideshow' %}
+        {% section 'static-highlights-banners' %}
+      {% endif %}
+
+      {{ content_for_layout }}
+    </main>
+    {% section 'static-footer' %}
+    <div style="display: none;" aria-hidden="true" data-templates>
+      {% include 'message-banner' %}
+      {% include 'atc-banner' %}
+    </div>
+    {% include 'modal' %}
+    {%- if template contains 'customer' -%}
+      {{ 'shopify_common.js' | shopify_asset_url | script_tag }}
+      {{ 'customer_area.js' | shopify_asset_url | script_tag }}
+    {%- endif -%}
+    <script async
+      src="{{ 'empire.min.js' | asset_url }}"
+      data-scripts
+      data-shopify-api-url="{{ 'api.jquery.js' | shopify_asset_url }}"
+      data-shopify-currencies="//cdn.shopify.com/s/javascripts/currencies.js"
+      data-shopify-countries="/services/javascripts/countries.js"
+      data-shopify-common="{{ 'shopify_common.js' | shopify_asset_url }}"
+      data-shopify-cart="{{ 'jquery.cart.min.js' | asset_url }}">
+    </script>
+    {% include 'structured-data' %}
+    <script defer type="text/javascript" charset="utf-8">
+    var shappify_customer_tags = {{ customer.tags | json }}
+  </script>
+{% if template contains 'product' %}
+	{{ shop.metafields.loox["global_html_body"] }}
+{% endif %}
+</body>
+</html>

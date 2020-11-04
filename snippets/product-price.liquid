@@ -1,0 +1,34 @@
+<div class="{{ class_root }}--price {% if compare_at_price_varies %}price--varies{% endif %}">
+  <div
+    class="price--compare-at {% if emphasize_price or on_sale and show_original %}visible{% endif %}"
+    data-price-compare-at
+  >
+    {%- capture price_html -%}
+      <span class="money">
+        {{ compare_at_price | money }}
+      </span>
+    {%- endcapture -%}
+
+    {% if compare_at_price_varies and on_sale and show_original %}
+      {{ 'product.item.price.range_html' | t: price: price_html | strip_newlines }}
+    {% elsif on_sale and show_original %}
+      {{ price_html }}
+    {% elsif emphasize_price %}
+      <span class="price--spacer"></span>
+    {% elsif show_original %}
+      <span class="money"></span>
+    {% endif %}
+  </div>
+  <div class="price--main" data-price>
+    {%- capture price_html -%}
+      <span class="money">
+        {{ price | money }}
+      </span>
+    {%- endcapture -%}
+    {% if price_varies %}
+      {{ 'product.item.price.range_html' | t: price: price_html | strip_newlines }}
+    {% else %}
+      {{ price_html }}
+    {% endif %}
+  </div>
+</div>

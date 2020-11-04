@@ -1,0 +1,45 @@
+{%- capture search_type -%}
+  {% if enable_content %}
+    article,page,product
+  {% else %}
+    product
+  {% endif %}
+{%- endcapture -%}
+<div class="productgrid--search" data-live-search>
+  <form
+    class="productgrid--search-form"
+    action="/search"
+    method="get"
+    data-live-search-form>
+    <input type="hidden" name="type" value="{{ search_type | replace: '  ', '' | strip_newlines }}">
+    <div class="form-field no-label">
+      <input
+        class="form-field-input productgrid--search-form-field"
+        type="text"
+        name="q"
+        aria-label="{{ 'search.form.label' | t }}"
+        placeholder="{{ 'search.form.placeholder' | t}}"
+        {% if search.performed %}
+          {%
+            include 'search-sanitizer',
+            search_terms: search.terms
+          %}
+          value="{{ sanitized_terms }}"
+        {% endif %}
+        data-live-search-input>
+      <button
+        class="productgrid--search-button"
+        type="submit"
+        aria-label="{{ 'general.accessibility.search' | t }}"
+        data-live-search-submit
+      >
+        <span class="search-icon search-icon--inactive">
+          {% include 'icon-search' %}
+        </span>
+        <span class="search-icon search-icon--active">
+          {% include 'icon-spinner' %}
+        </span>
+      </button>
+    </div>
+  </form>
+</div>

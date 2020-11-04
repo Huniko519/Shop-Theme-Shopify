@@ -1,0 +1,43 @@
+{% assign image = 'image_' | append: id %}
+{% assign text = 'text_' | append: id %}
+{% assign url = 'link_' | append: id %}
+{% assign position = 'position_' | append: id %}
+{% assign size = 'size_' | append: id %}
+{% assign image = settings[image] %}
+{% assign text = settings[text] %}
+{% assign url = settings[url] %}
+{% assign position = settings[position] %}
+{% assign size = settings[size] %}
+{% if image != blank %}
+  <li
+    class="
+      navmenu-meganav--image-container
+      navmenu-meganav--image-{{ position }}
+    "
+  >
+    {% if url %}
+      <a class="navmenu-meganav--image-link" href="{{ url }}">
+    {% endif %}
+      <img
+        class="
+          navmenu-meganav--image
+          navmenu-meganav--image-size-{{ size }}
+        "
+        src="{{ image | img_url: '800x' }}"
+      >
+    {% if url %}
+      </a>
+    {% endif %}
+    {% if text != blank %}
+      <p class="navmenu-meganav--image-text">
+        {% if url %}
+          <a class="navmenu-meganav--image-link" href="{{ url }}">
+        {% endif %}
+          {{ text | escape }}
+        {% if url %}
+          </a>
+        {% endif %}
+      </p>
+    {% endif %}
+  </li>
+{% endif %}

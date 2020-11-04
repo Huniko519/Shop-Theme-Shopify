@@ -1,0 +1,36 @@
+<!doctype html>
+<!--[if IE]><html class="no-js ie9" lang="{{ shop.locale }}"><![endif]-->
+<!--[if !IE]><!--><html class="no-js" lang="{{ shop.locale }}"><!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <title>
+      {{- shop.name -}}
+    </title>
+    {% if page_description != blank %}
+      <meta name="description" content="{{ page_description | escape }}">
+    {% endif %}
+    {% include 'favicon' %}
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <meta name="viewport" content="width=device-width">
+    {% include 'social-meta-tags' %}
+    {{ content_for_header }}
+    <script>
+      document.documentElement.className=document.documentElement.className.replace(/\bno-js\b/,'js');
+      if(window.Shopify&&window.Shopify.designMode)document.documentElement.className+=' in-theme-editor';
+      if(('ontouchstart' in window)||window.DocumentTouch&&document instanceof DocumentTouch)document.documentElement.className=document.documentElement.className.replace(/\bno-touch\b/,'has-touch');
+    </script>
+    {% include 'fonts' %}
+    {{ 'theme.scss.css' | asset_url | stylesheet_tag }} 
+</head>
+
+  <body class="template-{{ template | split: '.' | first }}">
+    <main class="site-main">
+      {{ content_for_layout }}
+    </main>
+    {% include 'modal' %}
+    <script src="{{ 'empire.js' | asset_url }}">
+    </script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+<section class="atc-banner--container" data-atc-banner>
+  <div class="atc-banner--outer">
+    <div class="atc-banner--inner">
+      <div class="atc-banner--product">
+        <h2 class="atc-banner--product-title">
+          <span class="atc-banner--product-title--icon">
+            {%- include 'icon-checkmark' -%}
+          </span>
+          {{ 'add_to_cart_banner.general.product_added' | t }}
+        </h2>
+        <div class="atc--product">
+          <div class="atc--product-image" data-atc-banner-product-image>
+            {{ 'image' | placeholder_svg_tag: 'placeholder--image' }}
+          </div>
+          <div class="atc--product-details">
+            <h2 class="atc--product-details--title" data-atc-banner-product-title></h2>
+            <span class="atc--product-details--options" data-atc-banner-product-options></span>
+            <span class="atc--product-details--price money" data-atc-banner-product-price></span>
+          </div>
+        </div>
+      </div>
+      <div class="atc-banner--cart">
+        <div class="atc-banner--cart-subtotal">
+          <span class="atc-subtotal--label">
+            {{ 'add_to_cart_banner.general.sub_total' | t }}
+          </span>
+          <span class="atc-subtotal--price money" data-atc-banner-cart-subtotal></span>
+        </div>
+        <footer class="atc-banner--cart-footer">
+          <a class="button-secondary atc-button--viewcart" href="/cart" data-atc-banner-cart-button>
+            {{ 'add_to_cart_banner.general.view_cart_html' | t: count: '<span></span>' }}
+          </a>
+          <a class="button-primary atc-button--checkout" href="/checkout">
+            {{ 'add_to_cart_banner.general.checkout' | t }}
+          </a>
+        </footer>
+      </div>
+    </div>
+    <button
+      class="atc-banner--close"
+      type="button"
+      aria-label="{{ 'general.accessibility.close' | t }}"
+      data-atc-banner-close
+    >
+      {%- include 'icon-menu-close' -%}
+    </button>
+  </div>
+</section>

@@ -1,0 +1,11 @@
+<div class="promo-mosaic--row">
+  <div class="promo-mosaic--column promo-mosaic--column-full">
+    {%
+      include 'promo-block',
+      block: section.blocks[0],
+      text_alignment: text_alignment,
+      compress_blocks: compress_blocks,
+      maintain_aspect_ratio: maintain_aspect_ratio
+    %}
+  </div>
+</div>

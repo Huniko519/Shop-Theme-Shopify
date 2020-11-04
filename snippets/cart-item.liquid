@@ -1,0 +1,117 @@
+{% assign compare_at_price = 0 %}
+
+{% for variant in item.product.variants %}
+  {% if variant.id == item.variant.id and variant.compare_at_price > item.price %}
+    {% assign compare_at_price = variant.compare_at_price %}
+    {% break %}
+  {% endif %}
+{% endfor %}
+<article class="cart-item"
+  data-cartitem
+  data-cartitem-id="{{ item.variant_id }}"
+  data-cartitem-price="{{ item.price }}">
+  <figure class="cart-item--image-wrapper">
+    <a href="{{ item.url }}">
+      {% if item.image %}
+      <img
+        src="{{ item.image | img_url: '120x' }}"
+        {% if image.height >= 240 %}
+          srcset="{{ image | img_url: '240x' }} 2x"
+        {% endif %}
+        alt="{{ item.title | escape }}">
+      {% else %}
+        {{ 'image' | placeholder_svg_tag: 'placeholder--image' }}
+      {% endif %}
+    </a>
+  </figure>
+  <div class="cart-item--inner">
+    <div class="cart-item--content">
+      <h2 class="cart-item--content-title">
+        <a href="{{ item.url }}">
+          {{ item.product.title }}
+        </a>
+      </h2>
+      <div class="cart-item--content-price">
+        <span class="cart-item--price-title">
+          {{ 'cart.general.price' | t }}
+        </span>
+        {% if compare_at_price > item.price %}
+          <span class="cart-item--sale-price money">
+            {{ compare_at_price | money }}
+          </span>
+        {% endif %}
+        <span class="money">
+          {{ item.price | money }}
+        </span>
+      </div>
+      {% unless item.product.has_only_default_variant %}
+        {% for option in item.product.options %}
+          <div class="cart-item--content-info">
+            <span>{{ option }}</span>
+            {{ item.variant.options[forloop.index0] }}
+          </div>
+        {% endfor %}
+      {% endunless %}
+    </div>
+    <div class="cart-item--info">
+      <div
+        class="cart-item--quantity form-fields--qty"
+        data-quantity-wrapper
+        >
+        <div class="form-field form-field--qty-select {% if item.quantity < 10 %}visible{% else %}hidden{% endif %}">
+          <div class="form-field-select-wrapper">
+            <select
+              class="form-field-input form-field-select form-field-filled"
+              {% if item.quantity >= 10 %}tabindex="-1"{% endif %}
+              aria-label="{{ 'general.general.quantity' | t }}"
+              data-quantity-select
+              data-cartitem-quantity>
+              {% for i in (1..9) %}
+                <option {% if i == item.quantity %}selected {% endif %}value="{{ i }}">
+                  {{ i }}
+                </option>
+              {% endfor %}
+              <option value="10">
+                10+
+              </option>
+            </select>
+            <label class="form-field-title">
+              {{ 'general.general.quantity' | t }}
+            </label>
+            {% include 'icon-chevron-down-small' %}
+            </div>
+        </div>
+        <div class="form-field form-field--qty-input {% if item.quantity < 10 %}hidden{% else %}visible{% endif %}">
+          <input
+            class="form-field-input form-field-number form-field-filled"
+            value="{{ item.quantity }}"
+            name="updates[]"
+            id="updates_{{ item.key }}"
+            type="text"
+            pattern="\d*"
+            {% if item.quantity < 10 %}tabindex="-1"{% endif %}
+            aria-label="{{ 'general.general.quantity' | t }}"
+            data-quantity-input
+            data-cartitem-quantity>
+          <label class="form-field-title" for="updates_{{ item.key }}">
+            {{ 'general.general.quantity' | t }}
+          </label>
+        </div>
+      </div>
+      <div class="cart-item--total">
+        <span class="money" data-cartitem-total>
+          {{ item.line_price | money }}
+        </span>
+      </div>
+      <div class="cart-item--remove">
+        <a
+          href="/cart/change?line={{ forloop.index }}&amp;quantity=0"
+          class="cart-item--remove-link"
+          data-cartitem-remove
+        >
+          {% include 'icon-remove' %}
+        </a>
+      </div>
+    </div>
+  </div>
+</article>

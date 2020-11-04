@@ -1,0 +1,120 @@
+{%- capture navmenu_classes -%}
+  navmenu
+  navmenu-depth-{{ depth }}
+  {% if is_submenu %}navmenu-submenu{% endif %}
+{%- endcapture -%}
+{% assign menu_title = false %}
+{% if is_submenu %}
+  {% assign list = menu.links %}
+  {% assign menu_title = sub_menu_title %}
+{% else %}
+  {% assign list = linklists[menu].links %}
+  {% assign menu_title = linklists[menu].title %}
+{% endif %}
+<ul
+  class="{{ navmenu_classes | strip_newlines }}"
+  {% if has_triggers and is_submenu %}data-navmenu-submenu{% endif %}
+  {% if menu_title %}aria-label="{{ menu_title }}"{% endif %}
+>
+  {% for link in list %}
+    {% assign d = depth | plus: 1 %}
+    {% assign show_meganav = false %}
+    {% assign show_subnav = true %}
+    {% if d > max_depth or linklists[link.handle] == blank %}
+      {% assign show_subnav = false %}
+    {% endif %}
+    {% assign shopify_attributes = null %}
+    {% if section.blocks.size > 0 %}
+      {% for block in section.blocks %}
+        {% assign meganav_trigger = block.settings.meganav_trigger | handle | strip %}
+        {% if link.handle == meganav_trigger and depth == 1 %}
+          {% assign show_meganav = true %}
+          {% assign shopify_attributes = block.shopify_attributes %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    {% unless show_subnav or show_meganav %}
+      <li class="navmenu-item navmenu-id-{{ link.handle }}">
+        <a
+          class="navmenu-link {% if link.active %}navmenu-link--active{% endif %}"
+          href="{{ link.url }}"
+        >
+          {{ link.title }}
+        </a>
+      </li>
+    {% else %}
+      {%- capture navmenu_item_classes -%}
+        navmenu-item
+        navmenu-item-parent
+        navmenu-id-{{ link.handle }}
+        {% if show_meganav %}navmenu-meganav-item-parent{% endif %}
+      {%- endcapture -%}
+
+      <li
+        class="{{ navmenu_item_classes | strip_newlines }}"
+        {% if has_triggers %}data-navmenu-trigger{% endif %}
+        {% if has_triggers and show_meganav %}data-navmenu-meganav-trigger{% endif %}
+        {{ shopify_attributes }}
+      >
+        <a
+          class="navmenu-link navmenu-link-parent {% if link.active %}navmenu-link--active{% endif %}"
+          href="{{ link.url }}"
+          {% if aria_expanded %}
+            aria-expanded="true"
+          {% else %}
+            aria-haspopup="true"
+            aria-expanded="false"
+          {% endif %}
+        >
+          {{ link.title }}
+
+          {% if submenu_arrows %}
+            <span class="navmenu-icon navmenu-icon-depth-{{ depth }}">
+              {% include 'icon-chevron-down-small' %}
+            </span>
+          {% endif %}
+        </a>
+        {% if show_meganav %}
+          {%- capture meganav_classes -%}
+            navmenu-submenu
+            navmenu-meganav
+            {% if is_site_nav %}navmenu-meganav--desktop{% endif %}
+          {%- endcapture -%}
+          <div class="{{ meganav_classes | strip_newlines }}" data-navmenu-submenu data-meganav-menu>
+            <div class="meganav-inner">
+              <div
+                class="navmenu-meganav--scroller">
+                {% assign meganav_has_triggers = true %}
+                {% if is_site_nav %}
+                  {% assign meganav_has_triggers = false %}
+                {% endif %}
+
+                {%
+                  include 'meganav-navmenu',
+                  depth: d,
+                  max_depth: max_depth,
+                  is_submenu: true,
+                  meganav_has_triggers: meganav_has_triggers,
+                  submenu_arrows: submenu_arrows,
+                  blocks: blocks
+                %}
+              </div>
+            </div>
+          </div>
+        {% else %}
+          {%
+            include 'navmenu',
+            menu: link,
+            depth: d,
+            max_depth: max_depth,
+            is_submenu: true,
+            has_triggers: has_triggers,
+            submenu_arrows: submenu_arrows,
+            aria_expanded: aria_expanded,
+            sub_menu_title: link.title
+          %}
+        {% endif %}
+      </li>
+    {% endunless %}
+  {% endfor %}
+</ul>

@@ -1,0 +1,207 @@
+{%- include 'bold-product' with product, hide_action: 'break', output: 'none' -%}
+{% assign enable_recently_viewed = false %}
+{% assign recently_viewed_info = '' %}
+
+{% if settings.product_enable_recently_viewed_products %}
+  {% assign enable_recently_viewed = true %}
+
+  {% capture recently_viewed_image %}
+    {% if product.images.size > 0 %}
+      {{ product.images[0] | image_url: '180x180' | json }}
+    {% else %}
+      {% assign background_color = settings.color_background %}
+      {% assign svg_fill = text | color_mix: background_color, 35 %}
+      {%-
+        include 'placeholder_svg_uri'
+        placeholder: 'image',
+        color_string: svg_fill
+      -%}
+    {% endif %}
+  {% endcapture %}
+
+  {% if product.images.size < 1 %}
+    {% assign recently_viewed_image = recently_viewed_image | json %}
+  {% endif %}
+
+  {% assign selected_variant = bold_selected_or_first_available_variant %}
+{%- include 'bold-variant' with selected_variant, output: 'none' -%}
+  {% assign compare_at_price = selected_variant.compare_at_price %}
+  {% assign price = bold_variant_price %}
+  {% assign product_available = product.available %}
+
+  {% assign on_sale = false %}
+  {% if compare_at_price > price %}
+    {% assign on_sale = true %}
+  {% endif %}
+
+  {% capture product_price %}
+    {%
+      include 'product-badge',
+      class_root: 'product',
+      product_available: product_available,
+      on_sale: on_sale,
+      price: price,
+      compare_at_price: compare_at_price,
+      show_saved: true
+    %}
+
+    {%
+      include 'product-price',
+      class_root: 'product',
+      price: price,
+      price_varies: false,
+      compare_at_price: compare_at_price,
+      compare_at_price_varies: false,
+      on_sale: on_sale,
+      emphasize_price: false,
+      show_original: true
+    %}
+  {% endcapture %}
+
+  {% capture recently_viewed_info %}
+    ,
+    "recently_viewed_info": {
+      "title": {{ product.title | json }},
+      "handle": {{ product.handle | json }},
+      "image": {{ recently_viewed_image }},
+      "link": {{ product.url | within: collection | json }},
+      "price": {{ product_price | json }}
+    },
+    "time": {
+      "second": {{ 'general.time.second' | t | json }},
+      "seconds": {{ 'general.time.seconds' | t | json }},
+      "minute": {{ 'general.time.minute' | t | json }},
+      "minutes": {{ 'general.time.minutes' | t | json }},
+      "hour": {{ 'general.time.hour' | t | json }},
+      "hours": {{ 'general.time.hours' | t | json }},
+      "ago": {{ 'general.time.ago' | t | json }}
+    }
+  {% endcapture %}
+{% endif %}
+
+<script
+  type="application/json"
+  data-section-type="static-product"
+  data-section-id="{{ section.id }}"
+  data-section-data>
+  {
+    "settings": {
+      "cart_redirection": {{ settings.product_cart_redirect | json }},
+      "layout": {{ section.settings.layout | json }},
+      "money_format": {{ shop.money_format | strip_html | json }},
+      "enable_video_autoplay": {{ section.settings.enable_video_autoplay | json }}
+    },
+    "context": {
+      "product_available": {{ 'product.buttons.add_to_cart' | t | json }},
+      "product_unavailable": {{ 'product.buttons.sold_out' | t | json }}
+    },
+    "product": {%- include 'bold-product', output: 'json' -%}
+    {% if enable_recently_viewed %}
+      {{ recently_viewed_info }}
+    {% endif %}
+  }
+</script>
+
+{% include 'breadcrumbs' %}
+
+<section class="product--container {{ section.settings.layout }}" data-product-wrapper>
+  {%
+    include 'product',
+    layout: section.settings.layout,
+    is_product_modal: false
+  %}
+</section>
+
+{% if section.settings.enable_related_products %}
+  {% assign related_collection = collection %}
+  {% if collection == null or collection.handle == 'frontpage' or collection.handle == 'all' %}
+    {% assign collection_found = false %}
+    {% for c in product.collections %}
+      {% if collection_found == false and c.handle != 'frontpage' and c.handle != 'all' %}
+        {% assign collection_found = true %}
+        {% assign related_collection = c %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {% if related_collection.products.size > 0 %}
+    {%
+      include 'related-products',
+      current_product: product.id
+    %}
+  {% endif %}
+{% endif %}
+
+{% if settings.product_ratings_reviews %}
+  <section class="product-section--container" data-product-reviews>
+    <div class="product-section--content product-reviews--content">
+      <div id="shopify-product-reviews" data-id="{{product.id}}">{{ product.metafields.spr.reviews }}</div>
+    </div>
+  </section>
+{% endif %}
+
+{% if settings.product_enable_recently_viewed_products %}
+  <section class="product-section--container product-recently-viewed--section">
+    <div class="product-recently-viewed-wrapper">
+      <div class="product-recently-viewed-header">
+        <h3 class="product-recently-viewed-heading">
+          {{ 'general.time.previous' | t }}
+        </h3>
+        <span
+          class="product-recently-viewed-clear"
+          data-clear-recently-viewed
+        >
+          {{ 'general.time.clear' | t }}
+        </span>
+      </div>
+
+      <div
+        class="
+          product-section--content
+          product-recently-viewed--content
+          imagestyle--{{ settings.product_grid_image_style }}
+        "
+        data-recently-viewed-container
+      ></div>
+    </div>
+  </section>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Product pages",
+  "class": "product--section",
+  "settings": [
+    {
+      "id": "layout",
+      "type": "select",
+      "label": "Layout",
+      "options": [
+        {
+          "value": "layout--two-col",
+          "label": "2 columns"
+        },
+        {
+          "value": "layout--three-col",
+          "label": "3 columns"
+        }
+      ],
+      "default": "layout--three-col"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_related_products",
+      "label": "Enable related products",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_video_autoplay",
+      "label": "Enable autoplay for product videos",
+      "default": false
+    }
+  ]
+}
+
+{% endschema %}

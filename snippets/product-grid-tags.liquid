@@ -1,0 +1,63 @@
+{%- capture tag_icon -%}
+  <span class="filter-icon--checkbox">
+    {%- include 'icon-checkbox' -%}
+  </span>
+{%- endcapture -%}
+
+<ul class="productgrid--sidebar-item filter-group">
+  {% comment %}
+    Strip the prepended categories if they happen to exist.
+  {% endcomment %}
+
+  {% for tag in collection.all_tags %}
+    {% assign is_advanced_tag = false %}
+    {% assign cat = tag | split: '_' | first %}
+    {% unless cat == tag %}
+      {% if cat_array contains cat %}
+        {% assign is_advanced_tag = true %}
+      {% endif %}
+    {% endunless %}
+
+    {%- capture tag_text -%}
+      {{- tag_icon -}}
+
+      <span class="filter-text">
+        {%- if is_advanced_tag -%}
+          {{ tag | remove_first: cat | remove_first: '_' }}
+        {%- else -%}
+          {{ tag }}
+        {%- endif -%}
+      </span>
+    {%- endcapture -%}
+
+    {% assign filter_class = 'filter-item' %}
+    {%- if current_tags contains tag -%}
+      {% assign filter_class = filter_class | append: ' filter-item--active' %}
+    {%- else -%}
+      {% assign filter_class = filter_class | append: ' filter-item--inactive' %}
+    {%- endif -%}
+
+    {%- if forloop.index > tag_limit -%}
+      {% assign filter_class = filter_class | append: ' filter-item--hidden' %}
+    {%- endif -%}
+
+    <li
+      class="{{ filter_class }}"
+      {% if forloop.index > tag_limit %}data-hidden-default{% endif %}
+    >
+      {% if current_tags contains tag %}
+        {{ tag_text | link_to_remove_tag: tag | replace: '" title="', '&grid_list" title=""' }}
+      {% else %}
+        {{ tag_text | link_to_tag: tag | replace: '" title="', '&grid_list" title=""' }}
+      {% endif %}
+    </li>
+  {% endfor %}
+
+  {% if collection.all_tags.size > tag_limit %}
+    <li class="filter-item filter-item--toggle">
+      <a class="filter-text--link" href="#" data-filter-toggle="false">
+        {{ 'general.general.see_more' | t }}
+      </a>
+    </li>
+  {% endif %}
+</ul>

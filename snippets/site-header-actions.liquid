@@ -1,0 +1,43 @@
+<ul class="site-header-actions" data-header-actions>
+  {% if shop.customer_accounts_enabled %}
+    {% unless customer %}
+      <li class="site-header-account-link">
+        <a href="/account/login">
+          {{ 'header.account.login' | t }}
+        </a>
+      </li>
+    {% else %}
+      <li class="site-header-account-link">
+        <a href="/account">{{ 'header.account.title' | t }}</a>
+      </li>
+
+      <li class="site-header-account-link">
+        <a href="/account/logout">
+          {{ 'header.account.logout' | t }}
+        </a>
+      </li>
+    {% endunless %}
+  {% endif %}
+
+  {% if settings.enable_currency_converter %}
+    <li class="currency-converter-wrapper">
+      <div class="form-field-select-wrapper no-label">
+        <select
+          class="form-field-input form-field-select"
+          name="currencies"
+          aria-label="{{ 'header.converter.label' | t }}"
+          data-currency-converter>
+          {% assign supported_currencies = 'AED|ALL|AMD|ANG|AOA|ARS|AUD|AWG|AZN|BAM|BBD|BDT|BGN|BHD|BND|BOB|BRL|BSD|BTN|BWP|BYR|BZD|CAD|CHF|CLP|CNY|COP|CRC|CZK|DKK|DOP|DZD|EGP|ETB|EUR|FJD|GBP|GEL|GHS|GMD|GTQ|GYD|HKD|HNL|HRK|HUF|IDR|ILS|INR|ISK|JEP|JMD|JOD|JPY|KES|KGS|KHR|KRW|KWD|KYD|KZT|LBP|LKR|LTL|LVL|MAD|MDL|MGA|MKD|MMK|MNT|MOP|MUR|MVR|MXN|MYR|MZN|NAD|NGN|NIO|NOK|NPR|NZD|OMR|PEN|PGK|PHP|PKR|PLN|PYG|QAR|RON|RSD|RUB|RWF|SAR|SCR|SEK|SGD|STD|SYP|THB|TND|TRY|TTD|TWD|TZS|UAH|UGX|USD|UYU|VEF|VND|VUV|WST|XAF|XBT|XCD|XOF|XPF|ZAR|ZMW' %}
+          {% assign store_currencies = settings.currency_converter_currencies | split: ' ' %}
+          <option value="{{ shop.currency }}" selected="selected">{{ shop.currency }}</option>
+          {% for code in store_currencies %}
+            {% if code != shop.currency and supported_currencies contains code %}
+              <option value="{{ code }}">{{ code }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        {% include 'icon-chevron-down-small' %}
+      </div>
+    </li>
+  {% endif %}
+</ul>

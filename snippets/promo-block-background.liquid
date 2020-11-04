@@ -1,0 +1,50 @@
+{%- comment -%}
+  @param blocks {array}
+    Array of blocks to iterate block stylings through
+{%- endcomment -%}
+<style>
+  {% for block in blocks %}
+    {% assign bg_color = 'transparent' %}
+    {% assign bg_image = '' %}
+    {% assign bg_image_retina = false %}
+    {% if block.settings.image %}
+      {% assign bg_image = block.settings.image | img_url: '1024x1024' %}
+      {% assign bg_image_retina = block.settings.image | img_url: '2048x2048' %}
+    {% else %}
+      {%- capture bg_image -%}
+        {% assign text = settings.color_text %}
+        {% assign body_background = settings.color_background %}
+        {% assign bg_color = text | color_mix: body_background, 10 %}
+        {% assign svg_fill = text | color_mix: body_background, 35 %}
+        {%-
+          include 'placeholder_svg_uri'
+          placeholder: 'image',
+          color_string: svg_fill
+         -%}
+      {%- endcapture -%}
+    {% endif %}
+
+    {% if block.settings.show_overlay %}
+      {% assign opacity = block.settings.opacity | times: 0.01 %}
+      {% assign overlay = block.settings.background | color_modify: 'alpha', opacity %}
+    {% endif %}
+    .promo-block--{{ block.id }} {
+      color: {{ block.settings.color }};
+      background-color: {{ bg_color }};
+      background-image: url('{{ bg_image | strip_newlines }}');
+    }
+    {% if bg_image_retina %}
+      @media (-webkit-min-device-pixel-ratio: 1.5) and (min-width: 1024px),
+        (min-resolution: 144dpi) and (min-width: 1024px) {
+        .promo-block--{{ block.id }} {
+          background-image: url('{{ bg_image_retina }}');
+        }
+      }
+    {% endif %}
+    {% if block.settings.show_overlay %}
+      .promo-block--{{ block.id }} .promo-block--content {
+        background-color: {{ overlay }};
+      }
+    {% endif %}
+  {% endfor %}
+</style>

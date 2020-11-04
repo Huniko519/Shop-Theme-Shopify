@@ -1,0 +1,220 @@
+<script
+  type="application/json"
+  data-section-type="dynamic-search"
+  data-section-id="{{ section.id }}"
+  data-section-data>
+  {
+    "settings": {
+      "live_search": {
+        "enable": {{ section.settings.enable_live_search | json }},
+        "enable_images": {{ section.settings.enable_live_search_images | json }},
+        "enable_content": {{ section.settings.enable_live_search_articles_pages | json }},
+        "money_format": {{ shop.money_format | strip_html | json }},
+        "context": {
+          "view_all_results": {{ 'search.general.view_all_results' | t | json }},
+          "view_all_products": {{ 'search.general.view_all_products' | t | json }},
+          "chevron": {{ flydown_chevron | replace: '  ', '' | strip_newlines | json }},
+          "content_results": {
+            "title": {{ 'search.general.pages_and_posts_title' | t | json }},
+            "no_results": {{ 'search.general.pages_and_posts_no_results' | t | json }}
+          },
+          "no_results_products": {
+            "title": {{ 'search.general.no_results_products_title' | t: terms: '*terms*' | json }},
+            "message": {{ 'search.general.no_results_products_message' | t | json }}
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  .search-section-overlay {
+    background: {{ section.settings.background }};
+    opacity: 0.{{ section.settings.opacity }};
+  }
+
+  .search-section-overlay + .search-section-content,
+  .search-section-overlay + .search-section-content .search-section-heading {
+    color: {{ section.settings.color }};
+  }
+</style>
+
+<section class="search-section">
+  <div
+    class="
+      search-section-background
+      search-section-position-{{ section.settings.position }}
+    "
+    {% if section.settings.image != blank %}
+      style="background-image: url({{ section.settings.image | img_url: '1800x1000' }})"
+    {% endif %}
+  ></div>
+
+  {% if section.settings.show-overlay %}
+    <div class="search-section-overlay"></div>
+  {% endif %}
+
+  <div class="search-section-content">
+    <div class="search-section-header">
+      {% if section.settings.heading %}
+        <h2 class="search-section-heading">
+          {{ section.settings.heading | escape }}
+        </h2>
+      {% endif %}
+
+      {% if section.settings.text %}
+        <h3 class="search-section-subheading">
+          {{ section.settings.text | escape }}
+        </h3>
+      {% endif %}
+    </div>
+
+    {%
+      include 'header-search-form',
+      enable_live_search: section.settings.enable_live_search,
+      enable_images: section.settings.enable_live_search_images,
+      enable_content: section.settings.enable_live_search_articles_pages,
+      placeholder: section.settings.placeholder
+    %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Search",
+  "class": "search--section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Search"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Text",
+      "default": "Use this section to help customers find the products they're looking for."
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Placeholder text",
+      "default": "What are you looking for?"
+    },
+    {
+      "type": "header",
+      "content": "Live search"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_live_search",
+      "label": "Enable live search"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_live_search_images",
+      "label": "Show product images in live search results"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_live_search_articles_pages",
+      "label": "Show blog posts and pages in live search results"
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Position",
+      "info": "Adjust the focal point of the image. Note: This setting will not have much of an impact if your background image's dimensions are roughly the same size as the section.",
+      "default": "center-center",
+      "options": [
+        {
+          "label": "Top left",
+          "value": "top-left"
+        },
+        {
+          "label": "Top center",
+          "value": "top-center"
+        },
+        {
+          "label": "Top right",
+          "value": "top-right"
+        },
+        {
+          "label": "Center left",
+          "value": "center-left"
+        },
+        {
+          "label": "Center",
+          "value": "center-center"
+        },
+        {
+          "label": "Center right",
+          "value": "center-right"
+        },
+        {
+          "label": "Bottom left",
+          "value": "bottom-left"
+        },
+        {
+          "label": "Bottom center",
+          "value": "bottom-center"
+        },
+        {
+          "label": "Bottom right",
+          "value": "bottom-right"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "checkbox",
+      "id": "show-overlay",
+      "label": "Enable overlay",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "label": "Opacity",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    }
+  ],
+  "presets": [
+    {
+      "name": "Search",
+      "category": "Search"
+    }
+  ]
+}
+
+{% endschema %}

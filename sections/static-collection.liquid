@@ -1,0 +1,413 @@
+<script
+  type="application/json"
+  data-section-type="static-collection"
+  data-section-id="{{ section.id }}"
+  data-section-data>
+  {
+    "context": {
+      "see_more": {{ 'general.general.see_more' | t | json }},
+      "see_less": {{ 'general.general.see_less' | t | json }}
+    },
+    {% if settings.product_enable_recently_viewed_products %}
+      "time": {
+        "second": {{ 'general.time.second' | t | json }},
+        "seconds": {{ 'general.time.seconds' | t | json }},
+        "minute": {{ 'general.time.minute' | t | json }},
+        "minutes": {{ 'general.time.minutes' | t | json }},
+        "hour": {{ 'general.time.hour' | t | json }},
+        "hours": {{ 'general.time.hours' | t | json }},
+        "ago": {{ 'general.time.ago' | t | json }}
+      }
+    {% endif %}
+  }
+</script>
+{% assign show_sidebar = true %}
+{% assign show_filters = true %}
+{% assign show_filter_trigger = false %}
+
+{% if section.settings.filter_style == 'none' or true %}
+  {% assign show_filters = false %}
+{% endif %}
+
+{% if section.settings.show_sidebar %}
+  {% comment %}
+    Sidebar toggle is used on mobile only, and will only show Filters
+  {% endcomment %}
+
+  {% if collection.all_tags.size > 0 and show_filters %}
+    {% assign show_filter_trigger = true %}
+  {% endif %}
+
+  {% if section.blocks.size > 0 or collection.all_tags.size > 0 and show_filters %}
+    {% comment %}
+      Sidebar to show only if there are tags in the collection, or there are menus
+    {% endcomment %}
+    {% assign show_sidebar = true %}
+  {% endif %}
+{% endif %}
+
+{% assign paginate_by = section.settings.products_per_page_range %}
+{% if template contains 'view-24' %}
+  {% assign paginate_by = '24' %}
+{% elsif template contains 'view-36' %}
+  {% assign paginate_by = '36' %}
+{% elsif template contains 'view-48' %}
+  {% assign paginate_by = '48' %}
+{% endif %}
+
+{%- capture collection_classes -%}
+  {% if show_sidebar %}
+    layout--has-sidebar
+  {% else %}
+    layout--no-sidebar
+  {% endif %}
+{%- endcapture -%}
+
+  <div class="productgrid--outer {{ collection_classes | strip_newlines }}">
+    {% if show_sidebar %}
+      {%
+        include 'product-grid-sidebar',
+        filter_style: section.settings.filter_style,
+        filter_position: section.settings.filter_position,
+        filter_limit: section.settings.filter_limit,
+        menu_depth: section.settings.menu_depth_range
+      %}
+    {% endif %}
+    
+    {% paginate collection.products by paginate_by %}
+    <div class="productgrid--wrapper">
+      {% include 'breadcrumbs' %}
+
+      <div class="productgrid--masthead">
+        {% if section.settings.show_collection_image and collection.image %}
+          <figure class="collection--image">
+            <img
+              src="{{ collection.image | img_url: '1350x' }}"
+              alt="{{ collection.image.alt | escape }}">
+          </figure>
+        {% endif %}
+
+        <div class="collection--information">
+          <h1 class="collection--title">
+            {{ collection.title }}
+          </h1>
+
+          {% if collection.description != blank %}
+            <div class="collection--description rte">
+              {{ collection.description }}
+            </div>
+          {% endif %}
+        </div>
+
+        {% if current_tags.size > 0 %}
+          <div class="productgrid--filters">
+            {%- include 'product-grid-tags-active' %}
+          </div>
+        {% endif %}
+      </div>
+
+      {% if show_filter_trigger or section.settings.sort_by or section.settings.show_by %}
+        {% capture utility_class %}
+          productgrid--utils
+
+          {% if show_filter_trigger or section.settings.sort_by %}
+            productgrid--utils--visible-mobile
+          {% endif %}
+
+          {% unless section.settings.show_by or section.settings.sort_by %}
+            productgrid--utils--hidden-desktop
+          {% endunless %}
+        {% endcapture %}
+        <nav
+          class="{{ utility_class | strip_newlines }}"
+          aria-label="{{ 'general.accessibility.nav_collection_utilities' | t }}"
+        >
+          {% if show_filter_trigger %}
+            {%- assign filter_count = 0 -%}
+            {%- if current_tags.size > 0 -%}
+              {%- assign filter_count = current_tags.size -%}
+            {%- endif -%}
+            <div class="productgrid--utils utils-filter">
+              <button
+                class="utils-filter-button"
+                type="button"
+                aria-label="{{ 'product_grid.filters.title_count' | t: count: filter_count }}"
+                data-productgrid-trigger-filters
+              >
+                <span class="utils-filter-icon">
+                  {%- include 'icon-filters' -%}
+                </span>
+                <span class="utils-filter-text">
+                  {{- 'product_grid.filters.title_count' | t: count: filter_count -}}
+                </span>
+              </button>
+            </div>
+          {% endif %}
+
+          {%- if section.settings.sort_by -%}
+            {%-
+              include 'product-grid-sortby',
+              type: 'select',
+            -%}
+          {%- endif -%}
+
+          {%- if section.settings.show_by or section.settings.grid_list -%}
+            <div
+              class="
+                productgrid--utils
+                utils-view
+                {% if section.settings.grid_list == false %}
+                  utils-hide
+                {% endif %}
+              "
+            >
+              <div class="utils-view-container">
+                {%- if section.settings.show_by -%}
+                  {%-
+                    include 'product-grid-showby',
+                    show_by: paginate_by,
+                    grid_list: section.settings.grid_list
+                  -%}
+                {%- endif -%}
+
+                {% if section.settings.grid_list %}
+                  <div class="utils-viewtoggle">
+                    <span class="utils-viewtoggle-label">
+                      {{ 'product_grid.view_as.title' | t }}
+                    </span>
+
+                    <button class="utils-viewtoggle-button active" data-collection-grid-view>
+                      {% include 'icon-library', id: 'icon-grid' %}
+                    </button>
+
+                    <button class="utils-viewtoggle-button" data-collection-list-view>
+                      {% include 'icon-library', id: 'icon-list' %}
+                    </button>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {%- endif -%}
+        </nav>
+      {% endif %}
+
+      <div class="productgrid--items">
+        {% for product in collection.products %}
+      {% if product.available %}
+{%- include 'bold-product' with product, hide_action: 'skip' -%}
+          {%
+            include 'product-grid-item',
+            product: product
+          %}
+        {% endif %}
+        {% else %}
+          <article class="productgrid--no-results">
+            <h2 class="productgrid--no-results-title">
+              {%- if collection.all_products_count == 0 -%}
+                {{ 'product_grid.no_results.empty' | t }}
+              {%- else -%}
+                {{ 'product_grid.no_results.tags_empty' | t }}
+              {%- endif -%}
+            </h2>
+
+            <a class="productgrid--no-results-button" href="/collections/all">
+              {{ 'search.general.view_all_products' | t }}
+            </a>
+          </article>
+        {% endfor %}
+      </div>
+
+      {%
+        include 'pagination',
+        grid_list: true
+      %}
+    </div>
+    {% endpaginate %}
+  </div>
+
+{% if settings.product_enable_recently_viewed_products %}
+  <section class="product-section--container product-recently-viewed--section">
+    <div class="product-recently-viewed-wrapper">
+      <div class="product-recently-viewed-header">
+        <h3 class="product-recently-viewed-heading">
+          {{ 'general.time.previous' | t }}
+        </h3>
+        <span
+          class="product-recently-viewed-clear"
+          data-clear-recently-viewed
+        >
+          {{ 'general.time.clear' | t }}
+        </span>
+      </div>
+
+      <div
+        class="
+          product-section--content
+          product-recently-viewed--content
+          imagestyle--{{ settings.product_grid_image_style }}
+        "
+        data-recently-viewed-container
+      ></div>
+    </div>
+  </section>
+{% endif %}
+
+{%- if section.settings.sort_by -%}
+  {%-
+    include 'product-grid-sortby',
+    type: 'modal',
+  -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Collection pages",
+  "class": "collection--section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "label": "Show collection image",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "products_per_page_range",
+      "label": "Products per page",
+      "min": 24,
+      "max": 48,
+      "step": 12,
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Utility bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "sort_by",
+      "label": "Show \"Sort by\" Dropdown",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_by",
+      "label": "Show products per page links",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "grid_list",
+      "label": "Show grid/list view toggle",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Sidebar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sidebar",
+      "label": "Show sidebar",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "filter_style",
+      "label": "Filters ([?](https://help.shopify.com/manual/using-themes/themes-by-shopify/supply#product-tips-tips-specific))",
+      "options": [
+        {
+          "value": "none",
+          "label": "Hide filters"
+        },
+        {
+          "value": "tags",
+          "label": "By tag"
+        },
+        {
+          "value": "groups",
+          "label": "By group"
+        }
+      ],
+      "default": "tags"
+    },
+    {
+      "id": "filter_limit",
+      "type": "select",
+      "label": "Hide additional tags after",
+      "options": [
+        {
+          "value": "5",
+          "label": "5 tags"
+        },
+        {
+          "value": "6",
+          "label": "6 tags"
+        },
+        {
+          "value": "8",
+          "label": "8 tags"
+        },
+        {
+          "value": "10",
+          "label": "10 tags"
+        },
+        {
+          "value": "15",
+          "label": "15 tags"
+        },
+        {
+          "value": "20",
+          "label": "20 tags"
+        },
+        {
+          "value": "999",
+          "label": "Show all tags"
+        }
+      ],
+      "default": "999"
+    },
+    {
+      "type": "select",
+      "id": "filter_position",
+      "label": "Filters position",
+      "options": [
+        {
+          "value": "above_menus",
+          "label": "Above menus"
+        },
+        {
+          "value": "below_menus",
+          "label": "Below menus"
+        }
+      ],
+      "default": "above_menus"
+    },
+    {
+      "type": "range",
+      "id": "menu_depth_range",
+      "label": "Menu depth visibility ([?](https://help.shopify.com/manual/sell-online/online-store/menus-and-links#create-a-drop-down-menu))",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 1
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Menu",
+      "settings": [
+        {
+          "id": "menu",
+          "type": "link_list",
+          "label": "Menu",
+          "info": "This menu will show as many dropdown items as specified in \"Menu depth visibility\"."
+        }
+      ],
+      "limit": 10
+    }
+  ]
+}
+
+{% endschema %}

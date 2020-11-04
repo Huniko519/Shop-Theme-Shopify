@@ -1,0 +1,100 @@
+{%- capture classes -%}
+  product-gallery--slider
+  {% if product.images.size > 0 %}
+    product-gallery--has-images
+    product-gallery--style-{{ settings.product_slideshow_style }}
+  {% endif %}
+{%- endcapture -%}
+<div
+  class="{{ classes | strip_newlines }}"
+  data-product-slider
+>
+  {% if product.images.size > 0 %}
+    <div class="product-gallery--loader">
+      {% include 'icon-spinner' %}
+    </div>
+    {% for image in product.images %}
+      {% assign img_alt = product.title | escape %}
+      {% if image.alt != blank %}
+        {% assign img_alt = image.alt | escape %}
+      {% endif %}
+      <figure
+        class="product-gallery--image {% if selected_image == image %}image--selected{% endif %}"
+        data-product-image="{{ image.id }}"
+        data-product-image-index="{{ forloop.index0 }}"
+      >
+        <div
+          class="product-galley--image-background"
+          {% unless
+            img_alt contains 'vimeo' or
+            img_alt contains 'youtube' or
+            settings.product_slideshow_style == 'short' or
+            settings.product_slideshow_style == 'square' or
+            settings.product_slideshow_style == 'tall'
+          %}
+            style="background-image: url({{ image | img_url: 'x700' }})"
+          {% endunless %}
+        >
+          {% if img_alt contains 'vimeo' or img_alt contains 'youtube' %}
+            <div class="product-galley--video-container">
+              {%
+                include 'video',
+                slideshow: true,
+                url: img_alt,
+                aspect_ratio: "16-9"
+              %}
+
+              {% if image %}
+                <img class="video-image lazyload" data-expand="-10" data-src="{{ image | img_url: '1800x1000' }}">
+              {% endif %}
+            </div>
+          {% else %}
+            <img class="lazyload" data-expand="-10"
+              data-src="{{ image | img_url: 'x700' }}"
+              {% if image.width >= 1400 %}
+                data-srcset="{{ image | img_url: 'x1400' }} 2x"
+              {% endif %}
+              alt="{{ img_alt }}"
+            >
+          {% endif %}
+        </div>
+      </figure>
+    {% endfor %}
+  {% else %}
+    <figure class="product-gallery--image product-gallery--image-placeholder">
+      {{ 'image' | placeholder_svg_tag: 'placeholder--image' }}
+    </figure>
+  {% endif %}
+</div>
+
+{% if product.images.size > 0 %}
+  <nav
+    class="product-gallery--navigation"
+    data-product-slider-pagination
+    aria-label="{{ 'general.accessibility.nav_product_thumbnails' | t }}"
+  >
+    {% for image in product.images %}
+      {% assign img_alt = product.title | escape %}
+      {% if image.alt != blank %}
+        {% assign img_alt = image.alt | escape %}
+      {% endif %}
+      <button
+        class="product-gallery--thumbnail-trigger {% if selected_image == image %}thumbnail--selected{% endif %}"
+        data-product-thumbnail="{{ forloop.index0 }}"
+        type="button"
+      >
+        {% if img_alt contains 'vimeo' or img_alt contains 'youtube' %}
+          {% include 'icon-library', id: 'icon-play' %}
+        {% endif %}
+        <img
+          class="product-gallery--thumbnail lazyload"
+          data-src="{{ image | img_url: 'x47' }}"
+          {% if image.height >= 94 %}
+            data-srcset="{{ image | img_url: 'x47', scale: 2 }} 2x"
+         {% endif %}
+          alt="{{ image.alt | escape }}"
+        >
+      </button>
+    {% endfor %}
+  </nav>
+{% endif %}

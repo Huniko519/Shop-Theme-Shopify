@@ -1,0 +1,245 @@
+<!-- bold-cart.liquid -->
+{% comment %} Last updated 2016-12-06 {% endcomment %}
+{% capture bold_cart_liquid %}
+{% comment %}
+BOLD-CART.LIQUID - Universal Bold Cart Updater
+This file creates liquid variables to assist in updating line items in cart.liquid.
+
+USED BY: Product Options, Product Builder, Recurring Orders
+REQUIRES: bold-cart-item.liquid, bold.css
+
+To use this file:
+* Include this file at the beginning of cart.liquid and before any quick-carts in your template
+	Example: {% include 'bold-cart' %}
+
+
+* Make the following replacements.
+	bold_cart_total_price        replaces	cart.total_price
+	bold_cart_item_count         replaces	cart.item_count
+
+* Follow the install instructions for your app to see where these variables need to be inserted
+  (See bold-cart-item.liquid for additional installation requirements)
+
+  PRODUCT OPTIONS
+    bold_cart_item_count             replaces 	cart.item_count
+    {{ bold_edit_in_cart }}          inserted	At the end of cart.liquid
+
+  RECURRING ORDERS
+    bold_cart_total_price            replaces	cart.total_price
+    {{ bold_ro_cart }}               inserted	Inside the cart form where you would like the Recurring Cart widget to appear
+    show_paypal			    		 inserted	Inside "if additional_checkout_buttons" (Becomes "if additional_checkout_buttons and show_paypal")
+
+  PRODUCT BUILDER
+    bold_cart_item_count             replaces 	cart.item_count
+
+  BUY THE MEASURE
+    bold_cart_item_count             replaces 	cart.item_count
+
+{% endcomment %}
+{% if cart %}
+  {% assign bold_cart = cart %}
+  {% assign bold_item_list = bold_cart.items %}
+{% elsif checkout %}
+  {% assign bold_cart = checkout %}
+  {% assign bold_item_list = checkout.line_items %}
+{% endif %}
+
+{% assign is_mixed_cart = false %}
+{% assign show_paypal = true %}
+{% assign bold_cart_total_price = 0 %}
+{% assign bold_cart_item_count =  0 %}
+
+{%- if customer.tags and shop.metafields.shop_csp_tag_group.shop_csp_tag -%}
+	{%- assign all_shop_tags = shop.metafields.shop_csp_tag_group.shop_csp_tag | append: ',default' | split: ',' -%}
+	{%- for customer_tag in customer.tags -%}
+		{%- if all_shop_tags contains customer_tag -%}
+			{%- assign csp_customer_tag = customer_tag -%}
+		{%- endif -%}
+	{%- endfor -%}
+{%- endif -%}
+
+{% for bold_cart_item in bold_item_list %}
+	{% include 'bold-cart-item' with bold_cart_item %}
+	{% if bold_hidden_item %}{% continue %}{% endif %}
+
+	{% assign bold_cart_total_price = bold_cart_total_price | plus: bold_item_line_price %}
+
+	{% comment %} Update item count. {% endcomment %}
+    {% assign bold_cart_item_count  = bold_cart_item_count | plus: bold_item_quantity %}
+
+	{% if is_mixed_cart == false and bold_cart_item.properties.frequency_type_text and bold_cart_item.properties.frequency_num %}
+		{% assign is_mixed_cart = true %}
+        {% assign show_paypal = false %}
+		<style>[name*="goto_"] { display:none !important }</style>
+	{% endif %}
+
+	{% comment %} Hides third-party checkout buttons on the cart page if we are using Bundles in draft orders mode {% endcomment %}
+	{% if bold_cart_item.properties._bold_bundles_price != blank %}
+		{% assign additional_checkout_buttons = false %}
+	{% endif %}
+
+{% endfor %}
+
+{% comment %} Check to see if something went wrong - if we only have priced options left, clear the cart {% endcomment %}
+{% if bold_cart_item_count == 0 and bold_cart.item_count > 0 %}<script>window.location.href = '/cart/clear';</script>{% endif %}
+
+{% capture bold_ro_cart %}
+  {% if shop.metafields.bold_rp.recurring_type == 0 %}
+    <div class='product_rp_cart_div'></div>
+  {% endif %}
+{% endcapture %}
+
+{% capture bold_scripts %}
+<script async src="//secure.apps.shappify.com/apps/options/bold_cart_handler.php?shop={{shop.permanent_domain}}"></script>
+<script>
+  var Bold = Bold || {};
+	Bold.updateQtyBoxes = function(){
+	  /* First make sure all ratio information is properly set */
+	  jQuery.each(jQuery('[data-bold-ratio]'), function(index, obj){
+	    if(parseInt(jQuery(obj).data('bold-ratio')) != 1){
+	      /* The quantity displayed and the quantity passed to checkout are separate - create a hidden input with the true quantity */
+	      if(jQuery(obj).find('[name="updates[]"]').length && !jQuery(obj).find('.bold-true-quantity').length){
+	        jQuery(obj).find('[name="updates[]"]').addClass('bold-display-quantity').removeAttr('name').parent().append('<input type="hidden" name="updates[]" class="bold-true-quantity">');
+	      }
+	    }
+	  });
+
+	  /* Now loop through all rows that have nonstandard quantity behaviour and set the correct quantity */
+	  jQuery.each(jQuery('[data-bold-ratio], .bold-master'), function(index, obj){
+	    var multiplier = parseInt(jQuery(obj).data('bold-ratio')) || 1;
+
+	    /* Find the base quantity value that we're basing the update on */
+	    var baseQty;
+	    if(jQuery(obj).find('.bold-display-quantity').length){
+	      baseQty = parseInt(jQuery(obj).find('.bold-display-quantity').val());
+	    }
+	    else{
+	      baseQty = parseInt(jQuery(obj).find('[name^=updates]').val());
+	    }
+	    if(isNaN(baseQty)) return; /* Abort this round if there's no base quantity to be found */
+
+	    /* Loop through all matching builder IDs to update. The name=updates will always hold the true quantity, a display-quantity (if it exists) will hold a 'faked' quantity based on the ratio */
+	    var components = jQuery(obj).closest('form').find('[data-bold-id=' + jQuery(obj).data('bold-id') + ']');
+	    if(components.length){
+	      jQuery.each(jQuery(components), function(cindex, component){
+	        var multiplier = parseInt(jQuery(component).data('bold-ratio')) || 1;
+
+	        if(jQuery(component).hasClass('bold-one-time-charge')){
+	          jQuery(component).find('[name*="updates"]').val(multiplier);
+	          jQuery(component).find('.bold-display-quantity').val(1);
+	        }else{
+	          jQuery(component).find('[name*="updates"]').val(multiplier * baseQty);
+	          jQuery(component).find('.bold-display-quantity').val(baseQty);
+	        }
+	      });
+	    }
+	    else{
+	      /* No builder ID, so we just have to worry about the multiplier ratio on this line */
+	      jQuery(obj).find('[name*="updates"]').val(multiplier * baseQty);
+	      jQuery(obj).find('.bold-display-quantity').val(baseQty);
+	    }
+	  });
+	};
+
+  var update_qty_builder = Bold.updateQtyBoxes;
+
+  function remove_product_builder(builder_id){
+    jQuery('[data-bold-id="'+ builder_id +'"] [name*="updates"]').val(0);
+    jQuery('[data-bold-id]').closest('form').submit();
+  }
+  function trigger_qty_update(){
+    setTimeout(function(){jQuery('.bold-master [name*="updates"]').trigger('change');}, 100);
+  }
+
+  if(typeof(jQuery)!='undefined' && typeof(Bold)=='object' && typeof(Bold.updateQtyBoxes)=='function')
+    jQuery(document).on('submit', 'form[action*="cart"]', Bold.updateQtyBoxes);
+
+  if(typeof(jQuery)!='undefined' && typeof(Bold)=='object' && typeof(Bold.updateQtyBoxes)=='function')
+    jQuery(document).on('change', '[name*="updates"]', Bold.updateQtyBoxes);
+</script>
+{% endcapture %}
+
+{% comment %} Output variables for Rivets-based carts {% endcomment %}
+{% assign bold_rivets_row_data = ' rv-class-bold-hidden="item.is_hidden" rv-class-bold-master="item.is_master" rv-data-bold-id="item.builder_id" rv-data-line="item.line" rv-data-bold-ratio="item.qty_ratio" ' %}
+{% assign bold_rivets_item_properties = '<div rv-html="item.formatted_properties"></div>' %}
+{% assign bold_rivets_recurring_desc = '<div rv-html="item.formatted_recurring_desc"></div>' %}
+
+{% capture bold_rivets_script %}
+{{ bold_scripts }}
+<script>
+  if(typeof(BOLD)==='object' && BOLD.helpers && typeof(BOLD.helpers.rivetsInit)==='function')
+    BOLD.helpers.rivetsInit();
+</script>
+{% endcapture %}
+
+{% capture bold_edit_in_cart %}
+{{ bold_scripts }}
+<div class="modal fade" style="display: none;" id="bold-cart-modal" aria-labelledby="boldcartmodal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      	<div class="modal-body">
+        <div class="bold-image"></div>
+        <div class="bold-title"></div>
+        <div class="bold-price"></div>
+        <div class="bold-desc"></div>
+        <div class="bold-options"></div>
+    	</div>
+    </div>
+  </div>
+</div>
+{% endcapture %}
+
+{% capture bold_cart_quantity_check %}
+<script>
+  /* Control quantities for variant-swapping apps */
+  var Bold=Bold || {};
+  Bold.updateQtyMax = function(){
+    jQuery.each(jQuery('[data-bold-inventory-policy="deny"][data-bold-base-variant]'), function(index, obj){
+
+      var total = jQuery(obj).data('bold-inventory-quantity');
+
+      /* Find number in the cart, remembering that multiple lines may have the same base variant */
+      var current = 0;
+      jQuery.each(jQuery('[data-bold-base-variant="' + jQuery(obj).data('bold-base-variant') + '"] [name^="updates"]'),function(qtyIndex,qtyObj){
+        current += parseInt(jQuery(qtyObj).val());
+      });
+
+      var remaining = total - current;
+
+      /* Update maximums for cart quantity boxes */
+      if(jQuery(obj).find('[name^="updates"]').length){
+        /* Each line's quantity box maximum is the current line quantity plus the number remaining */
+        var max = parseInt(jQuery(obj).find('[name^="updates"]').val()) + remaining;
+        jQuery(obj).find('[name^="updates"]').attr('max', max);
+      }
+      /* Update maximums for product-page quantity boxes */
+      else if(jQuery(obj).attr('name').indexOf('quantity') != -1){
+        jQuery(obj).attr('max', max);
+      }
+    });
+  };
+
+  /* Run function when updating the quantity box */
+  jQuery(document).on('change', '[data-bold-inventory-policy="deny"] [name*="updates"], [data-bold-inventory-policy="deny"][name*="quantity"]', function(){
+    var precheck = parseInt(jQuery(this).val());
+    var max = parseInt(jQuery(this).attr('max'));
+    if(precheck > max){
+      /* Force the box down to the maximum value if a user manages to input a larger number */
+      jQuery(this).val(jQuery(this).attr('max'));
+
+      if(typeof(qty_error_message)==='function')
+        qty_error_message(max, precheck);
+    }
+
+    Bold.updateQtyMax();
+  });
+  jQuery(window).load(function(){
+    Bold.updateQtyMax();
+    jQuery('[data-bold-inventory-policy="deny"] [name*="updates"]').trigger('change');
+  });
+
+</script>
+{% endcapture %}
+
+<script>window['mixed_cart'] = {{ is_mixed_cart }};</script>
+{% endcapture %}{{ bold_cart_liquid | strip_newlines }}
